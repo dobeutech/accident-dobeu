@@ -1,0 +1,22 @@
+{
+  "name": "accident-app",
+  "version": "1.0.0",
+  "description": "Fleet Accident Reporting System",
+  "private": true,
+  "scripts": {
+    "lint": "eslint . --ext .js,.jsx",
+    "lint:fix": "eslint . --ext .js,.jsx --fix",
+    "lint:backend": "eslint backend/src --ext .js",
+    "lint:web": "eslint web/src --ext .js,.jsx",
+    "lint:mobile": "eslint mobile/src --ext .js,.jsx"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0"
+  },
+  "workspaces": [
+    "backend",
+    "web",
+    "mobile"
+  ]
+}
+
