@@ -17,7 +17,10 @@ INSERT INTO permissions (role, resource, action) VALUES
 ('fleet_admin', 'form_configs', 'write'),
 ('fleet_admin', 'form_configs', 'delete'),
 ('fleet_admin', 'exports', 'read'),
-('fleet_admin', 'analytics', 'read')
+('fleet_admin', 'analytics', 'read'),
+('fleet_admin', 'rmis', 'read'),
+('fleet_admin', 'rmis', 'write'),
+('fleet_admin', 'rmis', 'delete')
 ON CONFLICT DO NOTHING;
 
 -- Fleet Manager - View and edit reports, export
