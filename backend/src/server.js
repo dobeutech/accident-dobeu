@@ -52,6 +52,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/form-configs', require('./routes/formConfigs'));
 app.use('/api/exports', require('./routes/exports'));
+app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/admin', require('./routes/admin'));
 
 // Socket.IO for real-time features
