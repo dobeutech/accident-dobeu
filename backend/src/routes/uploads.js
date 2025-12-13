@@ -166,7 +166,7 @@ router.post('/audio/:reportId', [
     
     const s3Result = await s3.upload(uploadParams).promise();
     
-    // Save audio record
+    // Save audio record (duration would need to be extracted from audio file)
     const [result] = await sequelize.query(`
       INSERT INTO report_audio 
         (report_id, fleet_id, file_key, file_url, file_size, duration_seconds)
@@ -180,7 +180,7 @@ router.post('/audio/:reportId', [
         file_key: fileKey,
         file_url: s3Result.Location,
         file_size: req.file.size,
-        duration_seconds: null
+        duration_seconds: null // Would need audio processing library
       },
       type: sequelize.QueryTypes.INSERT
     });
@@ -226,3 +226,4 @@ router.get('/signed-url/:fileKey', authenticate, enforceFleetContext, async (req
 });
 
 module.exports = router;
+
