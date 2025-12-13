@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formConfigsApi } from '../lib/api';
+import { useI18n } from '../lib/i18n';
 import { FormField, FieldType } from '../types';
 import {
   Plus,
@@ -8,7 +9,6 @@ import {
   Trash2,
   Edit2,
   Save,
-  X,
   Type,
   Hash,
   Calendar,
@@ -43,6 +43,7 @@ interface FieldEditorProps {
 }
 
 function FieldEditor({ field, onSave, onCancel, isLoading }: FieldEditorProps) {
+  const { t } = useI18n();
   const [formData, setFormData] = useState({
     fieldKey: field?.fieldKey || '',
     fieldType: field?.fieldType || 'text' as FieldType,
@@ -86,25 +87,28 @@ function FieldEditor({ field, onSave, onCancel, isLoading }: FieldEditorProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Field Key <span className="text-red-500">*</span>
+          <label htmlFor="fieldKey" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+            {t('formBuilder.fieldKey')} <span className="text-red-500" aria-hidden="true">*</span>
           </label>
           <input
+            id="fieldKey"
             type="text"
             className="input"
             placeholder="e.g., driver_statement"
             value={formData.fieldKey}
             onChange={(e) => setFormData({ ...formData, fieldKey: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
             disabled={!!field}
+            aria-required="true"
           />
-          <p className="mt-1 text-xs text-gray-500">Unique identifier (no spaces)</p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Unique identifier (no spaces)</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Field Type
+          <label htmlFor="fieldType" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+            {t('formBuilder.fieldType')}
           </label>
           <select
+            id="fieldType"
             className="input"
             value={formData.fieldType}
             onChange={(e) => setFormData({ ...formData, fieldType: e.target.value as FieldType })}
@@ -119,23 +123,26 @@ function FieldEditor({ field, onSave, onCancel, isLoading }: FieldEditorProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Label <span className="text-red-500">*</span>
+        <label htmlFor="fieldLabel" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+          {t('formBuilder.label')} <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         <input
+          id="fieldLabel"
           type="text"
           className="input"
           placeholder="e.g., Driver Statement"
           value={formData.label}
           onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+          aria-required="true"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="placeholder" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
           Placeholder Text
         </label>
         <input
+          id="placeholder"
           type="text"
           className="input"
           placeholder="Hint text for the field"
@@ -145,10 +152,11 @@ function FieldEditor({ field, onSave, onCancel, isLoading }: FieldEditorProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="section" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
           Section (Optional)
         </label>
         <input
+          id="section"
           type="text"
           className="input"
           placeholder="e.g., Vehicle Information"
@@ -158,10 +166,10 @@ function FieldEditor({ field, onSave, onCancel, isLoading }: FieldEditorProps) {
       </div>
 
       {needsOptions && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+        <fieldset>
+          <legend className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
             Options
-          </label>
+          </legend>
           <div className="space-y-2 mb-2">
             {formData.options.map((opt, index) => (
               <div key={index} className="flex items-center gap-2">
@@ -170,13 +178,15 @@ function FieldEditor({ field, onSave, onCancel, isLoading }: FieldEditorProps) {
                   className="input flex-1"
                   value={opt.label}
                   readOnly
+                  aria-label={`Option ${index + 1}`}
                 />
                 <button
                   type="button"
                   onClick={() => removeOption(index)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  aria-label={`Remove option ${opt.label}`}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             ))}
@@ -198,7 +208,7 @@ function FieldEditor({ field, onSave, onCancel, isLoading }: FieldEditorProps) {
               Add
             </button>
           </div>
-        </div>
+        </fieldset>
       )}
 
       <div className="flex items-center gap-2">
@@ -207,24 +217,24 @@ function FieldEditor({ field, onSave, onCancel, isLoading }: FieldEditorProps) {
           id="isRequired"
           checked={formData.isRequired}
           onChange={(e) => setFormData({ ...formData, isRequired: e.target.checked })}
-          className="w-4 h-4 text-primary-600 rounded"
+          className="w-4 h-4 text-blue-600 rounded border-gray-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500"
         />
-        <label htmlFor="isRequired" className="text-sm text-gray-700">
-          This field is required
+        <label htmlFor="isRequired" className="text-sm text-gray-700 dark:text-slate-300">
+          {t('formBuilder.required')}
         </label>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t">
+      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-slate-700">
         <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
+          {t('common.cancel')}
         </button>
         <button type="submit" className="btn-primary flex items-center gap-2" disabled={isLoading}>
           {isLoading ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" role="status" />
           ) : (
-            <Save className="w-4 h-4" />
+            <Save className="w-4 h-4" aria-hidden="true" />
           )}
-          Save Field
+          {t('formBuilder.save')}
         </button>
       </div>
     </form>
@@ -232,6 +242,7 @@ function FieldEditor({ field, onSave, onCancel, isLoading }: FieldEditorProps) {
 }
 
 export function FormBuilderPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [isAdding, setIsAdding] = useState(false);
   const [editingField, setEditingField] = useState<FormField | null>(null);
@@ -317,7 +328,7 @@ export function FormBuilderPage() {
   // Group fields by section
   const sections = fields.reduce((acc, field) => {
     const section = field.section || 'General';
-    if (!acc[section]) acc[section] = [];
+    if (!acc[section]) { acc[section] = []; }
     acc[section].push(field);
     return acc;
   }, {} as Record<string, FormField[]>);
@@ -330,26 +341,26 @@ export function FormBuilderPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Form Builder</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Customize the fields drivers fill out when reporting incidents
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <header>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('formBuilder.title')}</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            {t('formBuilder.subtitle')}
           </p>
-        </div>
+        </header>
         {!isAdding && !editingField && (
           <button onClick={() => setIsAdding(true)} className="btn-primary flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Add Field
+            <Plus className="w-4 h-4" aria-hidden="true" />
+            {t('formBuilder.addField')}
           </button>
         )}
       </div>
 
       {/* Add/Edit Form */}
       {(isAdding || editingField) && (
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {editingField ? 'Edit Field' : 'Add New Field'}
+        <section className="card p-6" aria-labelledby="field-editor-heading">
+          <h2 id="field-editor-heading" className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            {editingField ? t('formBuilder.editField') : t('formBuilder.addField')}
           </h2>
           <FieldEditor
             field={editingField || undefined}
@@ -366,19 +377,19 @@ export function FormBuilderPage() {
             }}
             isLoading={createMutation.isPending || updateMutation.isPending}
           />
-        </div>
+        </section>
       )}
 
       {/* Fields list */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center justify-center py-12" role="status" aria-label={t('common.loading')}>
+          <div className="w-8 h-8 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : fields.length === 0 ? (
         <div className="card p-12 text-center">
-          <Type className="w-12 h-12 text-gray-300 mx-auto" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No custom fields yet</h3>
-          <p className="mt-2 text-gray-500">
+          <Type className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto" aria-hidden="true" />
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">No custom fields yet</h3>
+          <p className="mt-2 text-gray-500 dark:text-slate-400">
             Add custom fields to collect specific information from drivers.
           </p>
           <button onClick={() => setIsAdding(true)} className="btn-primary mt-4">
@@ -388,39 +399,40 @@ export function FormBuilderPage() {
       ) : (
         <div className="space-y-6">
           {Object.entries(sections).map(([sectionName, sectionFields]) => (
-            <div key={sectionName} className="card">
-              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 rounded-t-xl">
-                <h3 className="font-medium text-gray-900">{sectionName}</h3>
+            <section key={sectionName} className="card" aria-labelledby={`section-${sectionName}`}>
+              <div className="px-4 py-3 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 rounded-t-xl">
+                <h3 id={`section-${sectionName}`} className="font-medium text-gray-900 dark:text-white">{sectionName}</h3>
               </div>
-              <div className="divide-y divide-gray-100">
+              <ul className="divide-y divide-gray-100 dark:divide-slate-700" role="list">
                 {sectionFields.map((field) => {
                   const FieldIcon = getFieldTypeIcon(field.fieldType);
                   return (
-                    <div
+                    <li
                       key={field.id}
-                      className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
-                      <GripVertical className="w-5 h-5 text-gray-300 cursor-grab" />
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <FieldIcon className="w-5 h-5 text-gray-600" />
+                      <GripVertical className="w-5 h-5 text-gray-300 dark:text-slate-600 cursor-grab" aria-hidden="true" />
+                      <div className="w-10 h-10 bg-gray-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
+                        <FieldIcon className="w-5 h-5 text-gray-600 dark:text-slate-400" aria-hidden="true" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900">{field.label}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{field.label}</span>
                           {field.isRequired && (
-                            <span className="text-xs text-red-500">Required</span>
+                            <span className="text-xs text-red-500 dark:text-red-400">{t('formBuilder.required')}</span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-slate-400">
                           {field.fieldKey} • {field.fieldType}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setEditingField(field)}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                          className="p-2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          aria-label={`Edit field ${field.label}`}
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-4 h-4" aria-hidden="true" />
                         </button>
                         <button
                           onClick={() => {
@@ -428,16 +440,17 @@ export function FormBuilderPage() {
                               deleteMutation.mutate(field.id);
                             }
                           }}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-2 text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          aria-label={`Delete field ${field.label}`}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" aria-hidden="true" />
                         </button>
                       </div>
-                    </div>
+                    </li>
                   );
                 })}
-              </div>
-            </div>
+              </ul>
+            </section>
           ))}
         </div>
       )}

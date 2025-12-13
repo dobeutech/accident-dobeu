@@ -6,8 +6,8 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  AccessibilityInfo,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,40 +16,42 @@ import { RootStackParamList } from '../../navigation/RootNavigator';
 import { useAuthStore } from '../../stores/authStore';
 import { useReportStore } from '../../stores/reportStore';
 import { useSyncStore } from '../../stores/syncStore';
+import { useI18n } from '../../lib/i18n';
 import { Colors, Shadows } from '../../theme/colors';
 import { IncidentType } from '../../types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
-const incidentTypes: { type: IncidentType; label: string; icon: keyof typeof Ionicons.glyphMap; color: string; description: string }[] = [
-  { 
-    type: 'accident', 
-    label: 'Vehicle Accident', 
-    icon: 'car',
-    color: Colors.incidentAccident,
-    description: 'Collision with vehicle, property, or pedestrian'
-  },
-  { 
-    type: 'incident', 
-    label: 'Injury/Incident', 
-    icon: 'medical',
-    color: Colors.incidentIncident,
-    description: 'Personal injury or workplace incident'
-  },
-  { 
-    type: 'near_miss', 
-    label: 'Near Miss', 
-    icon: 'warning',
-    color: Colors.incidentNearMiss,
-    description: 'Close call that could have caused harm'
-  },
-];
 
 export function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
   const { reports, fetchReports, isLoading, fetchFormFields } = useReportStore();
   const { queue, isOnline } = useSyncStore();
+  const { t } = useI18n();
+
+  const incidentTypes: { type: IncidentType; labelKey: string; icon: keyof typeof Ionicons.glyphMap; color: string; descriptionKey: string }[] = [
+    { 
+      type: 'accident', 
+      labelKey: 'incident.accident', 
+      icon: 'car',
+      color: Colors.incidentAccident,
+      descriptionKey: 'step1.accident.desc'
+    },
+    { 
+      type: 'incident', 
+      labelKey: 'incident.incident', 
+      icon: 'medical',
+      color: Colors.incidentIncident,
+      descriptionKey: 'step1.incident.desc'
+    },
+    { 
+      type: 'near_miss', 
+      labelKey: 'incident.nearMiss', 
+      icon: 'warning',
+      color: Colors.incidentNearMiss,
+      descriptionKey: 'step1.nearMiss.desc'
+    },
+  ];
 
   const pendingSyncCount = queue.filter(q => q.status === 'pending').length;
   const recentReports = reports.slice(0, 3);
@@ -73,27 +75,42 @@ export function HomeScreen() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    const statusKey = status === 'under_review' ? 'underReview' : status;
+    return t(`status.${statusKey}`);
+  };
+
+  const getIncidentTypeLabel = (type: string) => {
+    const typeKey = type === 'near_miss' ? 'nearMiss' : type;
+    return t(`incident.${typeKey}`);
+  };
+
   return (
     <ScrollView 
       style={styles.container}
       refreshControl={
         <RefreshControl refreshing={isLoading} onRefresh={fetchReports} />
       }
+      accessibilityRole="scrollbar"
     >
       {/* Connection Status Banner */}
       {!isOnline && (
-        <View style={styles.offlineBanner}>
+        <View 
+          style={styles.offlineBanner}
+          accessibilityRole="alert"
+          accessibilityLabel={t('home.offlineMode')}
+        >
           <Ionicons name="cloud-offline" size={16} color={Colors.white} />
           <Text style={styles.offlineBannerText}>
-            You're offline. Reports will sync when connected.
+            {t('home.offlineMode')}
           </Text>
         </View>
       )}
 
       {/* Welcome Section */}
       <View style={styles.welcomeSection}>
-        <Text style={styles.welcomeText}>
-          Welcome back, {user?.firstName || 'Driver'}
+        <Text style={styles.welcomeText} accessibilityRole="header">
+          {t('home.welcome')}, {user?.firstName || 'Driver'}
         </Text>
         <Text style={styles.welcomeSubtext}>
           Report any incidents immediately for your safety
@@ -102,20 +119,25 @@ export function HomeScreen() {
 
       {/* Quick Report Buttons */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Report an Incident</Text>
+        <Text style={styles.sectionTitle} accessibilityRole="header">
+          {t('home.quickReport')}
+        </Text>
         <View style={styles.incidentButtonsContainer}>
           {incidentTypes.map((incident) => (
             <TouchableOpacity
               key={incident.type}
               style={[styles.incidentButton, { borderLeftColor: incident.color }]}
               onPress={() => handleStartReport(incident.type)}
+              accessibilityRole="button"
+              accessibilityLabel={`${t(incident.labelKey)}. ${t(incident.descriptionKey)}`}
+              accessibilityHint="Double tap to start a new report"
             >
               <View style={[styles.incidentIconContainer, { backgroundColor: incident.color }]}>
                 <Ionicons name={incident.icon} size={28} color={Colors.white} />
               </View>
               <View style={styles.incidentTextContainer}>
-                <Text style={styles.incidentLabel}>{incident.label}</Text>
-                <Text style={styles.incidentDescription}>{incident.description}</Text>
+                <Text style={styles.incidentLabel}>{t(incident.labelKey)}</Text>
+                <Text style={styles.incidentDescription}>{t(incident.descriptionKey)}</Text>
               </View>
               <Ionicons name="chevron-forward" size={24} color={Colors.gray} />
             </TouchableOpacity>
@@ -126,10 +148,14 @@ export function HomeScreen() {
       {/* Sync Status */}
       {pendingSyncCount > 0 && (
         <View style={styles.syncSection}>
-          <View style={styles.syncCard}>
+          <View 
+            style={styles.syncCard}
+            accessibilityRole="alert"
+            accessibilityLabel={`${pendingSyncCount} ${t('profile.pendingUploads')}`}
+          >
             <Ionicons name="sync" size={24} color={Colors.warning} />
             <View style={styles.syncTextContainer}>
-              <Text style={styles.syncTitle}>Pending Uploads</Text>
+              <Text style={styles.syncTitle}>{t('profile.pendingUploads')}</Text>
               <Text style={styles.syncSubtext}>
                 {pendingSyncCount} item{pendingSyncCount > 1 ? 's' : ''} waiting to sync
               </Text>
@@ -141,16 +167,22 @@ export function HomeScreen() {
       {/* Recent Reports */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Reports</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Main', { screen: 'Reports' } as any)}>
+          <Text style={styles.sectionTitle} accessibilityRole="header">
+            {t('home.recentReports')}
+          </Text>
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Main', { screen: 'Reports' } as any)}
+            accessibilityRole="button"
+            accessibilityLabel="See all reports"
+          >
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
 
         {recentReports.length === 0 ? (
-          <View style={styles.emptyState}>
+          <View style={styles.emptyState} accessibilityRole="text">
             <Ionicons name="document-text-outline" size={48} color={Colors.grayMedium} />
-            <Text style={styles.emptyStateText}>No reports yet</Text>
+            <Text style={styles.emptyStateText}>{t('home.noReports')}</Text>
             <Text style={styles.emptyStateSubtext}>
               Tap a button above to create your first report
             </Text>
@@ -161,11 +193,13 @@ export function HomeScreen() {
               key={report.id}
               style={styles.reportCard}
               onPress={() => navigation.navigate('ReportDetail', { reportId: report.id })}
+              accessibilityRole="button"
+              accessibilityLabel={`${getStatusLabel(report.status)} report from ${new Date(report.incidentDate).toLocaleDateString()}`}
             >
               <View style={styles.reportCardHeader}>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(report.status) }]}>
                   <Text style={styles.statusBadgeText}>
-                    {report.status.replace('_', ' ').toUpperCase()}
+                    {getStatusLabel(report.status).toUpperCase()}
                   </Text>
                 </View>
                 <Text style={styles.reportDate}>
@@ -174,8 +208,7 @@ export function HomeScreen() {
               </View>
               <Text style={styles.reportNumber}>{report.reportNumber || report.id.slice(0, 8)}</Text>
               <Text style={styles.reportType}>
-                {report.incidentType.replace('_', ' ').charAt(0).toUpperCase() + 
-                 report.incidentType.replace('_', ' ').slice(1)}
+                {getIncidentTypeLabel(report.incidentType)}
               </Text>
               {report.address && (
                 <View style={styles.reportLocation}>
@@ -192,7 +225,11 @@ export function HomeScreen() {
 
       {/* Safety Reminder */}
       <View style={styles.safetySection}>
-        <View style={styles.safetyCard}>
+        <View 
+          style={styles.safetyCard}
+          accessibilityRole="text"
+          accessibilityLabel="Safety reminder: Ensure you're in a safe location before documenting any incident"
+        >
           <Ionicons name="shield-checkmark" size={24} color={Colors.success} />
           <View style={styles.safetyTextContainer}>
             <Text style={styles.safetyTitle}>Safety First</Text>
@@ -272,6 +309,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
+    minHeight: 80, // Minimum touch target
     ...Shadows.small,
   },
   incidentIconContainer: {
@@ -306,6 +344,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: Colors.warning,
+    minHeight: 64,
   },
   syncTextContainer: {
     marginLeft: 12,
@@ -344,6 +383,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    minHeight: 88, // Minimum touch target
     ...Shadows.small,
   },
   reportCardHeader: {
@@ -399,6 +439,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: Colors.success,
+    minHeight: 64,
   },
   safetyTextContainer: {
     marginLeft: 12,

@@ -9,19 +9,21 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuthStore } from '../../stores/authStore';
+import { useI18n, languageLabels, Language } from '../../lib/i18n';
 import { Colors, Shadows } from '../../theme/colors';
 
 export function LoginScreen() {
+  const { t, language, setLanguage } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   
   const { login } = useAuthStore();
 
@@ -42,19 +44,72 @@ export function LoginScreen() {
     }
   };
 
+  const languages: Language[] = ['en', 'es', 'fr'];
+  const languageFlags: Record<Language, string> = {
+    en: '🇺🇸',
+    es: '🇪🇸',
+    fr: '🇫🇷',
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.content}
       >
+        {/* Language Selector */}
+        <View style={styles.languageContainer}>
+          <TouchableOpacity 
+            style={styles.languageButton}
+            onPress={() => setShowLanguageMenu(!showLanguageMenu)}
+            accessibilityRole="button"
+            accessibilityLabel={`Current language: ${languageLabels[language]}. Tap to change.`}
+          >
+            <Text style={styles.languageFlag}>{languageFlags[language]}</Text>
+            <Ionicons name="chevron-down" size={16} color={Colors.textSecondary} />
+          </TouchableOpacity>
+          
+          {showLanguageMenu && (
+            <View style={styles.languageMenu}>
+              {languages.map((lang) => (
+                <TouchableOpacity
+                  key={lang}
+                  style={[
+                    styles.languageOption,
+                    language === lang && styles.languageOptionActive,
+                  ]}
+                  onPress={() => {
+                    setLanguage(lang);
+                    setShowLanguageMenu(false);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={languageLabels[lang]}
+                >
+                  <Text style={styles.languageFlag}>{languageFlags[lang]}</Text>
+                  <Text style={[
+                    styles.languageLabel,
+                    language === lang && styles.languageLabelActive,
+                  ]}>
+                    {languageLabels[lang]}
+                  </Text>
+                  {language === lang && (
+                    <Ionicons name="checkmark" size={18} color={Colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
+          <View style={styles.logoContainer} accessibilityRole="image">
             <Ionicons name="car" size={60} color={Colors.primary} />
           </View>
-          <Text style={styles.title}>Fleet Accident Reporter</Text>
+          <Text style={styles.title} accessibilityRole="header">
+            {t('app.name')}
+          </Text>
           <Text style={styles.subtitle}>
-            Document accidents quickly and accurately
+            {t('app.tagline')}
           </Text>
         </View>
 
@@ -63,7 +118,7 @@ export function LoginScreen() {
             <Ionicons name="mail-outline" size={20} color={Colors.gray} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Email address"
+              placeholder={t('auth.email')}
               placeholderTextColor={Colors.textMuted}
               value={email}
               onChangeText={setEmail}
@@ -71,6 +126,8 @@ export function LoginScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               editable={!isSubmitting}
+              accessibilityLabel={t('auth.email')}
+              accessibilityHint="Enter your email address"
             />
           </View>
 
@@ -78,17 +135,21 @@ export function LoginScreen() {
             <Ionicons name="lock-closed-outline" size={20} color={Colors.gray} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Password"
+              placeholder={t('auth.password')}
               placeholderTextColor={Colors.textMuted}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               editable={!isSubmitting}
+              accessibilityLabel={t('auth.password')}
+              accessibilityHint="Enter your password"
             />
             <TouchableOpacity 
               onPress={() => setShowPassword(!showPassword)}
               style={styles.eyeButton}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
             >
               <Ionicons 
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'} 
@@ -102,16 +163,23 @@ export function LoginScreen() {
             style={[styles.loginButton, isSubmitting && styles.loginButtonDisabled]}
             onPress={handleLogin}
             disabled={isSubmitting}
+            accessibilityRole="button"
+            accessibilityLabel={t('auth.signInButton')}
+            accessibilityState={{ disabled: isSubmitting }}
           >
             {isSubmitting ? (
-              <ActivityIndicator color={Colors.white} />
+              <ActivityIndicator color={Colors.white} accessibilityLabel="Signing in" />
             ) : (
-              <Text style={styles.loginButtonText}>Sign In</Text>
+              <Text style={styles.loginButtonText}>{t('auth.signInButton')}</Text>
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          <TouchableOpacity 
+            style={styles.forgotPassword}
+            accessibilityRole="link"
+            accessibilityLabel={t('auth.forgotPassword')}
+          >
+            <Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -134,9 +202,57 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
   },
+  languageContainer: {
+    position: 'absolute',
+    top: 16,
+    right: 24,
+    zIndex: 10,
+  },
+  languageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+    ...Shadows.small,
+  },
+  languageFlag: {
+    fontSize: 20,
+  },
+  languageMenu: {
+    position: 'absolute',
+    top: 44,
+    right: 0,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 8,
+    minWidth: 160,
+    ...Shadows.medium,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    gap: 12,
+  },
+  languageOptionActive: {
+    backgroundColor: Colors.grayLight,
+  },
+  languageLabel: {
+    fontSize: 15,
+    color: Colors.textPrimary,
+    flex: 1,
+  },
+  languageLabelActive: {
+    fontWeight: '600',
+    color: Colors.primary,
+  },
   header: {
     alignItems: 'center',
-    marginTop: 60,
+    marginTop: 80,
     marginBottom: 40,
   },
   logoContainer: {
@@ -154,6 +270,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
@@ -173,23 +290,28 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
+    minHeight: 56, // Accessibility - minimum touch target
   },
   inputIcon: {
     marginRight: 12,
   },
   input: {
     flex: 1,
-    height: 50,
+    height: 56,
     fontSize: 16,
     color: Colors.textPrimary,
   },
   eyeButton: {
-    padding: 4,
+    padding: 8,
+    minWidth: 44, // Accessibility - minimum touch target
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loginButton: {
     backgroundColor: Colors.primary,
     borderRadius: 12,
-    height: 50,
+    height: 56, // Accessibility - minimum touch target
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
@@ -205,6 +327,8 @@ const styles = StyleSheet.create({
   forgotPassword: {
     alignItems: 'center',
     marginTop: 16,
+    minHeight: 44, // Accessibility - minimum touch target
+    justifyContent: 'center',
   },
   forgotPasswordText: {
     color: Colors.primary,
