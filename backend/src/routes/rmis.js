@@ -13,7 +13,7 @@ router.get('/integrations', authenticate, enforceFleetContext, async (req, res) 
   try {
     const fleet_id = req.user.fleet_id;
     
-    const [integrations] = await sequelize.query(`
+    const integrations = await sequelize.query(`
       SELECT id, integration_type, is_active, created_at, updated_at,
              config::jsonb - 'apiKey' - 'password' as config
       FROM rmis_integrations
@@ -170,7 +170,7 @@ router.post('/push/:reportId', authenticate, requirePermission('rmis', 'write'),
     const fleet_id = req.user.fleet_id;
     
     // Get the report
-    const [reports] = await sequelize.query(`
+    const reports = await sequelize.query(`
       SELECT r.*, 
              u.first_name || ' ' || u.last_name as driver_name,
              u.email as driver_email
@@ -189,14 +189,14 @@ router.post('/push/:reportId', authenticate, requirePermission('rmis', 'write'),
     const report = reports[0];
     
     // Get photos and audio
-    const [photos] = await sequelize.query(`
+    const photos = await sequelize.query(`
       SELECT * FROM report_photos WHERE report_id = :report_id
     `, {
       replacements: { report_id: reportId },
       type: sequelize.QueryTypes.SELECT,
     });
     
-    const [audio] = await sequelize.query(`
+    const audio = await sequelize.query(`
       SELECT * FROM report_audio WHERE report_id = :report_id
     `, {
       replacements: { report_id: reportId },
@@ -265,7 +265,7 @@ router.get('/logs', authenticate, enforceFleetContext, async (req, res) => {
       replacements.report_id = report_id;
     }
     
-    const [logs] = await sequelize.query(`
+    const logs = await sequelize.query(`
       SELECT l.*, r.report_number
       FROM rmis_integration_logs l
       LEFT JOIN accident_reports r ON l.report_id = r.id
@@ -277,7 +277,7 @@ router.get('/logs', authenticate, enforceFleetContext, async (req, res) => {
       type: sequelize.QueryTypes.SELECT,
     });
     
-    const [countResult] = await sequelize.query(`
+    const countResults = await sequelize.query(`
       SELECT COUNT(*) as total
       FROM rmis_integration_logs
       ${whereClause}
@@ -286,13 +286,15 @@ router.get('/logs', authenticate, enforceFleetContext, async (req, res) => {
       type: sequelize.QueryTypes.SELECT,
     });
     
+    const total = countResults && countResults.length > 0 ? parseInt(countResults[0].total) : 0;
+    
     res.json({
       logs,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: parseInt(countResult[0].total),
-        pages: Math.ceil(countResult[0].total / limit),
+        total,
+        pages: Math.ceil(total / limit),
       },
     });
   } catch (error) {

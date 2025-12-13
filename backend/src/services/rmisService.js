@@ -50,7 +50,7 @@ class RMISService {
    */
   async getIntegration(fleetId, integrationType) {
     try {
-      const [result] = await sequelize.query(`
+      const results = await sequelize.query(`
         SELECT * FROM rmis_integrations 
         WHERE fleet_id = :fleet_id AND integration_type = :integration_type AND is_active = true
       `, {
@@ -58,7 +58,7 @@ class RMISService {
         type: sequelize.QueryTypes.SELECT,
       });
 
-      return result?.[0] ? JSON.parse(result[0].config) : null;
+      return results && results.length > 0 ? JSON.parse(results[0].config) : null;
     } catch (error) {
       logger.error('Get RMIS integration error:', error);
       return null;
