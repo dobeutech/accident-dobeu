@@ -1,16 +1,50 @@
 {
-  "name": "accident-app",
+  "name": "fleetguard",
   "version": "1.0.0",
-  "description": "Fleet Accident Reporting System",
+  "description": "FleetGuard - Professional Fleet Accident Reporting System",
   "private": true,
+  "author": "FleetGuard",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
-    "lint": "eslint . --ext .js,.jsx",
-    "lint:fix": "eslint . --ext .js,.jsx --fix",
-    "lint:backend": "eslint backend/src --ext .js",
-    "lint:web": "eslint web/src --ext .js,.jsx",
-    "lint:mobile": "eslint mobile/src --ext .js,.jsx"
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:web\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:web": "npm run dev --workspace=web",
+    "dev:mobile": "npm run start --workspace=mobile",
+    
+    "build": "npm run build:web",
+    "build:web": "npm run build --workspace=web",
+    
+    "lint": "npm run lint:backend && npm run lint:web && npm run lint:mobile",
+    "lint:backend": "npm run lint --workspace=backend",
+    "lint:web": "npm run lint --workspace=web",
+    "lint:mobile": "npm run lint --workspace=mobile",
+    
+    "lint:fix": "npm run lint:fix:backend && npm run lint:fix:web && npm run lint:fix:mobile",
+    "lint:fix:backend": "npm run lint:fix --workspace=backend",
+    "lint:fix:web": "npm run lint:fix --workspace=web",
+    "lint:fix:mobile": "npm run lint:fix --workspace=mobile",
+    
+    "type-check": "npm run type-check:web && npm run type-check:mobile",
+    "type-check:web": "npm run type-check --workspace=web",
+    "type-check:mobile": "npm run type-check --workspace=mobile",
+    
+    "migrate": "npm run migrate --workspace=backend",
+    
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:build": "docker compose build",
+    "docker:clean": "docker compose down -v --rmi local",
+    
+    "clean": "rm -rf node_modules backend/node_modules web/node_modules mobile/node_modules",
+    "fresh": "npm run clean && npm install"
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "eslint": "^8.55.0"
   },
   "workspaces": [
@@ -19,4 +53,3 @@
     "mobile"
   ]
 }
-

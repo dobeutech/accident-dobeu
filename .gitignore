@@ -93,3 +93,31 @@ AI_CONTEXT.md
 netlify.toml.local
 vercel.json.local
 *.production.env
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Certificates
+*.pem
+*.crt
+*.key
+
+# Backup files
+*.bak
+*.backup
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Database dumps
+*.sql.gz
+*.dump
+
+# Mobile builds
+mobile/android/app/build/
+mobile/ios/build/
+*.apk
+*.aab
+*.ipa

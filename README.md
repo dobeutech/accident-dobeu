@@ -272,6 +272,71 @@ npm run ios
 npm run android
 ```
 
+## 🐳 Docker Development
+
+### Quick Start with Docker Compose
+
+The fastest way to run FleetGuard locally:
+
+```bash
+# Clone the repository
+git clone https://github.com/fleetguard/fleetguard.git
+cd fleetguard
+
+# Start all services (database, backend, web)
+npm run docker:up
+
+# View logs
+npm run docker:logs
+
+# Stop all services
+npm run docker:down
+```
+
+This starts:
+- **PostgreSQL** at `localhost:5432`
+- **Backend API** at `localhost:3001`
+- **Web Dashboard** at `localhost:5173`
+- **Redis** at `localhost:6379` (optional caching)
+
+### Environment Variables
+
+Create a `.env` file in the root directory for Docker Compose:
+
+```env
+# Required
+DB_PASSWORD=your_secure_password
+JWT_SECRET=your_32_character_jwt_secret
+
+# AWS S3 (for file uploads)
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=us-east-1
+S3_BUCKET_NAME=your-bucket-name
+```
+
+### Building Production Images
+
+```bash
+# Build backend image
+docker build -t fleetguard-backend:latest .
+
+# Build web image
+docker build -t fleetguard-web:latest ./web \
+  --build-arg VITE_API_URL=https://api.yourdomain.com \
+  --build-arg VITE_WS_URL=https://api.yourdomain.com
+```
+
+### Docker Commands Reference
+
+| Command | Description |
+|---------|-------------|
+| `npm run docker:up` | Start all services |
+| `npm run docker:down` | Stop all services |
+| `npm run docker:logs` | View logs (follow mode) |
+| `npm run docker:build` | Rebuild images |
+| `npm run docker:clean` | Stop, remove volumes & images |
+
 ## ☁️ Deployment
 
 ### Netlify (Web Dashboard)
