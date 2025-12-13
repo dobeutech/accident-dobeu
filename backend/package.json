@@ -1,17 +1,19 @@
 {
-  "name": "accident-app-backend",
+  "name": "fleetguard-backend",
   "version": "1.0.0",
-  "description": "Fleet Accident Reporting System Backend",
+  "description": "FleetGuard Accident Reporter - Backend API Server",
+  "author": "FleetGuard",
+  "license": "ISC",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "migrate": "node src/database/migrate.js",
+    "lint": "eslint src/ --ext .js",
+    "lint:fix": "eslint src/ --ext .js --fix",
     "test": "jest"
   },
-  "keywords": ["fleet", "accident", "reporting"],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["fleet", "accident", "reporting", "rmis", "origami-risk"],
   "dependencies": {
     "express": "^4.18.2",
     "pg": "^8.11.3",
@@ -36,9 +38,12 @@
     "docx": "^8.5.0"
   },
   "devDependencies": {
+    "eslint": "^8.56.0",
     "nodemon": "^3.0.2",
     "jest": "^29.7.0",
     "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
-

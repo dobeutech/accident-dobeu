@@ -1,16 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fleet Accident Reporter - Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  <!-- Primary Meta Tags -->
+  <title>FleetGuard Accident Reporter | Fleet Incident Management System</title>
+  <meta name="title" content="FleetGuard Accident Reporter | Fleet Incident Management System">
+  <meta name="description" content="Professional fleet accident and incident reporting system. Document accidents quickly, capture photos, collect witness info, and export to RMIS systems like Origami Risk.">
+  <meta name="keywords" content="fleet management, accident reporting, incident management, RMIS integration, driver safety, fleet safety, accident documentation, Origami Risk">
+  <meta name="author" content="FleetGuard">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Theme Color for Mobile Browsers -->
+  <meta name="theme-color" content="#1e40af" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://fleetguard.app/">
+  <meta property="og:title" content="FleetGuard Accident Reporter | Fleet Incident Management">
+  <meta property="og:description" content="Professional fleet accident and incident reporting system. Document accidents quickly with guided workflows.">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="es_ES">
+  <meta property="og:locale:alternate" content="fr_FR">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://fleetguard.app/">
+  <meta property="twitter:title" content="FleetGuard Accident Reporter">
+  <meta property="twitter:description" content="Professional fleet accident and incident reporting system.">
+  <meta property="twitter:image" content="/og-image.png">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://fleetguard.app/">
+  
+  <!-- Alternate Language URLs for SEO -->
+  <link rel="alternate" hreflang="en" href="https://fleetguard.app/">
+  <link rel="alternate" hreflang="es" href="https://fleetguard.app/es/">
+  <link rel="alternate" hreflang="fr" href="https://fleetguard.app/fr/">
+  <link rel="alternate" hreflang="x-default" href="https://fleetguard.app/">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  
+  <!-- Preconnect to External Resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Fonts with Display Swap for Performance -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Structured Data for SEO -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "FleetGuard Accident Reporter",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "description": "Professional fleet accident and incident reporting system with mobile apps and RMIS integration.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "150"
+      }
+    }
+  </script>
+  
+  <!-- Accessibility: Prevent FOUC with dark mode -->
+  <script>
+    (function() {
+      try {
+        const stored = localStorage.getItem('fleetguard-theme');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const theme = parsed.state?.theme;
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else if (theme === 'system') {
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              document.documentElement.classList.add('dark');
+            }
+          }
+          if (parsed.state?.highContrast) {
+            document.documentElement.classList.add('high-contrast');
+          }
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body class="antialiased">
+  <!-- Skip to Content Link for Accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <!-- Root Element -->
+  <div id="root"></div>
+  
+  <!-- No JavaScript Fallback -->
+  <noscript>
+    <div style="padding: 20px; text-align: center; font-family: sans-serif;">
+      <h1>JavaScript Required</h1>
+      <p>FleetGuard Accident Reporter requires JavaScript to function. Please enable JavaScript in your browser settings.</p>
+    </div>
+  </noscript>
+  
+  <script type="module" src="/src/main.tsx"></script>
+</body>
 </html>

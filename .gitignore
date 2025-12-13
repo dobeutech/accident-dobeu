@@ -72,3 +72,25 @@ backend/temp/
 *.pem
 *.key
 
+# AI Builder Config Files
+claude.md
+gemini.md
+.claude/
+.cursor/
+.copilot/
+.ai/
+.aider*
+.continue/
+.codeium/
+.tabnine/
+CLAUDE.md
+GEMINI.md
+AI_CONTEXT.md
+.anthropic/
+.openai/
+
+# Production configs (use environment variables)
+netlify.toml.local
+vercel.json.local
+*.production.env
+
