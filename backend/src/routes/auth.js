@@ -5,8 +5,25 @@ const { hashPassword, comparePassword } = require('../utils/password');
 const { generateToken } = require('../utils/jwt');
 const logger = require('../utils/logger');
 const { authenticate } = require('../middleware/auth');
+const { 
+  authLimiter, 
+  accountLockout, 
+  trackFailedLogin, 
+  resetFailedAttempts 
+} = require('../middleware/rateLimiting');
 
 const router = express.Router();
+
+// Logout endpoint
+router.post('/logout', authenticate, (req, res) => {
+  res.clearCookie('auth_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
+  logger.info(`User logged out: ${req.user.email}`, { userId: req.user.userId });
+  res.json({ message: 'Logged out successfully' });
+});
 
 // Register new user (fleet admin or super admin only)
 router.post('/register', [
@@ -71,7 +88,7 @@ router.post('/register', [
 });
 
 // Login
-router.post('/login', [
+router.post('/login', authLimiter, accountLockout, [
   body('email').isEmail().normalizeEmail(),
   body('password').notEmpty()
 ], async (req, res) => {
@@ -95,6 +112,7 @@ router.post('/login', [
     });
     
     if (!users || users.length === 0) {
+      trackFailedLogin(email, req.ip);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
@@ -103,8 +121,12 @@ router.post('/login', [
     // Verify password
     const isValid = await comparePassword(password, user.password_hash);
     if (!isValid) {
+      trackFailedLogin(email, req.ip);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+    
+    // Reset failed attempts on successful login
+    resetFailedAttempts(email, req.ip);
     
     // Update last login
     await sequelize.query(`
@@ -122,10 +144,18 @@ router.post('/login', [
       fleet_name: user.fleet_name
     });
     
+    // Set httpOnly cookie for security
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+    
     logger.info(`User logged in: ${email}`, { userId: user.id, role: user.role });
     
     res.json({
-      token,
+      token, // Still send in response for mobile app compatibility
       user: {
         id: user.id,
         email: user.email,

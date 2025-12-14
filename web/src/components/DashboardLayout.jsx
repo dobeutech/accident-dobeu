@@ -6,19 +6,32 @@ import { initSocket, disconnectSocket } from '../services/socketService';
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, token, logout } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
-    if (token) {
-      initSocket(token);
+    if (!user) {
+      console.warn('Socket initialization skipped: no user available');
+      return;
     }
+    
+    // Initialize socket with user context
+    const socket = initSocket();
+    
+    socket.on('connect', () => {
+      console.log('Socket connected');
+    });
+    
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection failed:', error);
+    });
+    
     return () => {
       disconnectSocket();
     };
-  }, [token]);
+  }, [user]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 

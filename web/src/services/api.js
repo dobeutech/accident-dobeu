@@ -5,17 +5,30 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
+  withCredentials: true, // Enable cookies
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
+let csrfToken = null;
+
+// Fetch CSRF token on app init
+export const initCsrfToken = async () => {
+  try {
+    const response = await api.get('/csrf-token');
+    csrfToken = response.data.csrfToken;
+  } catch (error) {
+    console.error('Failed to fetch CSRF token:', error);
+  }
+};
+
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Add CSRF token for state-changing operations
+    if (csrfToken && ['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase())) {
+      config.headers['X-CSRF-Token'] = csrfToken;
     }
     return config;
   },
@@ -27,7 +40,11 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token');
+      // Store current path for redirect after login
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login') {
+        sessionStorage.setItem('redirect_after_login', currentPath);
+      }
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -35,14 +52,16 @@ api.interceptors.response.use(
 );
 
 export const authService = {
-  setToken: (token) => {
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-      delete api.defaults.headers.common['Authorization'];
-    }
+  login: async (email, password) => {
+    const response = await api.post('/auth/login', { email, password });
+    // Refresh CSRF token after login
+    await initCsrfToken();
+    return response;
   },
-  login: (email, password) => api.post('/auth/login', { email, password }),
+  logout: async () => {
+    await api.post('/auth/logout');
+    csrfToken = null;
+  },
   getCurrentUser: () => api.get('/auth/me')
 };
 

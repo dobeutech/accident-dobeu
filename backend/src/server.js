@@ -4,21 +4,54 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
+const csrf = require('csurf');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const logger = require('./utils/logger');
+const { runStartupValidation } = require('./utils/validateEnv');
+
+// Run startup validation
+runStartupValidation().catch(error => {
+  logger.error('Startup validation failed:', error);
+  process.exit(1);
+});
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.CORS_ORIGIN?.split(',') || '*',
-    methods: ['GET', 'POST']
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"]
+    }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  noSniff: true,
+  xssFilter: true,
+  hidePoweredBy: true
+}));
 app.use(compression());
 app.use(cors({
   origin: process.env.CORS_ORIGIN?.split(',') || '*',
@@ -26,6 +59,21 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+
+// CSRF protection (exclude auth routes and health check)
+const csrfProtection = csrf({ cookie: true });
+app.use((req, res, next) => {
+  if (req.path === '/health' || req.path.startsWith('/api/auth/login') || req.path.startsWith('/api/auth/register')) {
+    return next();
+  }
+  csrfProtection(req, res, next);
+});
+
+// CSRF token endpoint
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
 
 // Rate limiting
 const limiter = rateLimit({
@@ -34,16 +82,16 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Request logging
+// Request logging and performance monitoring
+const { performanceMonitoring } = require('./middleware/performanceMonitoring');
+app.use(performanceMonitoring);
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`, { ip: req.ip });
   next();
 });
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// Health check routes
+app.use('/health', require('./routes/health'));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -74,8 +122,56 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+// Graceful shutdown handler
+const gracefulShutdown = (signal) => {
+  logger.info(`${signal} received, starting graceful shutdown...`);
+  
+  httpServer.close(() => {
+    logger.info('HTTP server closed');
+    
+    // Close database connections
+    const { sequelize } = require('./database/connection');
+    sequelize.close().then(() => {
+      logger.info('Database connections closed');
+      process.exit(0);
+    }).catch(err => {
+      logger.error('Error closing database:', err);
+      process.exit(1);
+    });
+  });
+
+  // Force shutdown after 30 seconds
+  setTimeout(() => {
+    logger.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 30000);
+};
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  gracefulShutdown('uncaughtException');
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 httpServer.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`Process ID: ${process.pid}`);
+  
+  // Send ready signal to PM2
+  if (process.send) {
+    process.send('ready');
+  }
 });
 
 module.exports = { app, io };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formConfigService } from '../services/api';
 import toast from 'react-hot-toast';
+import { sanitizeInput, validateFieldKey } from '../utils/sanitize';
 
 export default function FormConfigPage() {
   const [showForm, setShowForm] = useState(false);
@@ -102,7 +103,16 @@ export default function FormConfigPage() {
                 <input
                   type="text"
                   value={formData.field_key}
-                  onChange={(e) => setFormData({ ...formData, field_key: e.target.value })}
+                  onChange={(e) => {
+                    const sanitized = sanitizeInput(e.target.value);
+                    if (sanitized && !validateFieldKey(sanitized)) {
+                      toast.error('Field key can only contain letters, numbers, and underscores');
+                      return;
+                    }
+                    setFormData({ ...formData, field_key: sanitized });
+                  }}
+                  pattern="[a-zA-Z0-9_]+"
+                  maxLength={50}
                   required
                   disabled={!!editing}
                 />
@@ -127,7 +137,8 @@ export default function FormConfigPage() {
                 <input
                   type="text"
                   value={formData.label}
-                  onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, label: sanitizeInput(e.target.value) })}
+                  maxLength={255}
                   required
                 />
               </div>
@@ -136,7 +147,8 @@ export default function FormConfigPage() {
                 <input
                   type="text"
                   value={formData.placeholder}
-                  onChange={(e) => setFormData({ ...formData, placeholder: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, placeholder: sanitizeInput(e.target.value) })}
+                  maxLength={255}
                 />
               </div>
               <div className="form-group">
@@ -154,7 +166,8 @@ export default function FormConfigPage() {
                 <input
                   type="text"
                   value={formData.section}
-                  onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, section: sanitizeInput(e.target.value) })}
+                  maxLength={100}
                 />
               </div>
               <div className="form-group">

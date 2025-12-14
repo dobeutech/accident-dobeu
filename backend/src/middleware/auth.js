@@ -4,13 +4,19 @@ const logger = require('../utils/logger');
 
 const authenticate = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    // Try cookie first (web), then Authorization header (mobile)
+    let token = req.cookies?.auth_token;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
     }
     
-    const token = authHeader.substring(7);
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
     
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -18,12 +24,18 @@ const authenticate = async (req, res, next) => {
       // Set user context for RLS
       req.user = decoded;
       
-      // Set PostgreSQL session variables for RLS
+      // Set PostgreSQL session variables for RLS (use parameterized queries to prevent SQL injection)
       if (decoded.fleet_id) {
-        await sequelize.query(`SET app.current_fleet_id = '${decoded.fleet_id}'`);
+        await sequelize.query('SET app.current_fleet_id = :fleet_id', {
+          replacements: { fleet_id: decoded.fleet_id }
+        });
       }
-      await sequelize.query(`SET app.user_role = '${decoded.role}'`);
-      await sequelize.query(`SET app.user_id = '${decoded.userId}'`);
+      await sequelize.query('SET app.user_role = :role', {
+        replacements: { role: decoded.role }
+      });
+      await sequelize.query('SET app.user_id = :user_id', {
+        replacements: { user_id: decoded.userId }
+      });
       
       next();
     } catch (error) {

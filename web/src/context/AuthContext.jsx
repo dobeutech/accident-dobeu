@@ -13,17 +13,12 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('auth_token'));
   const [loading, setLoading] = useState(true);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
-    if (token) {
-      authService.setToken(token);
-      loadUser();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
+    loadUser();
+  }, []);
 
   const loadUser = async () => {
     try {
@@ -31,42 +26,55 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data.user);
     } catch (error) {
       console.error('Error loading user:', error);
-      logout();
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
   const login = async (email, password) => {
+    if (isLoggingIn) {
+      return { success: false, error: 'Login in progress' };
+    }
+    
+    setIsLoggingIn(true);
     try {
       const response = await authService.login(email, password);
-      const { token: newToken, user: userData } = response.data;
+      const { user: userData } = response.data;
       
-      localStorage.setItem('auth_token', newToken);
-      setToken(newToken);
       setUser(userData);
-      authService.setToken(newToken);
       
-      return { success: true };
+      // Check for redirect path
+      const redirectPath = sessionStorage.getItem('redirect_after_login');
+      if (redirectPath) {
+        sessionStorage.removeItem('redirect_after_login');
+      }
+      
+      return { success: true, redirectPath };
     } catch (error) {
       return {
         success: false,
         error: error.response?.data?.error || 'Login failed'
       };
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    setToken(null);
-    setUser(null);
-    authService.setToken(null);
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+    }
   };
 
   const value = {
     user,
-    token,
     loading,
+    isLoggingIn,
     login,
     logout,
     isAuthenticated: !!user
