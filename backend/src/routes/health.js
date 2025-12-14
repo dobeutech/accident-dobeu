@@ -106,8 +106,9 @@ router.get('/live', (req, res) => {
 });
 
 // Metrics endpoint (basic)
-router.get('/metrics', (req, res) => {
+router.get('/metrics', async (req, res) => {
   const { getMetrics } = require('../middleware/performanceMonitoring');
+  const { getDatabaseStats } = require('../middleware/queryMonitoring');
   const performanceMetrics = getMetrics();
   
   const metrics = {
@@ -129,6 +130,14 @@ router.get('/metrics', (req, res) => {
       loadAverage: os.loadavg()
     }
   };
+
+  // Add database stats if available
+  try {
+    const dbStats = await getDatabaseStats(sequelize);
+    metrics.database = dbStats;
+  } catch (error) {
+    logger.error('Error getting database stats for metrics:', error);
+  }
 
   res.json(metrics);
 });

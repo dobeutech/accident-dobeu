@@ -82,6 +82,16 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Request validation and sanitization
+const { 
+  sanitizeParams, 
+  validateResponse,
+  validateBodySize 
+} = require('./middleware/requestValidation');
+app.use(sanitizeParams);
+app.use(validateResponse);
+app.use(validateBodySize());
+
 // Request logging and performance monitoring
 const { performanceMonitoring } = require('./middleware/performanceMonitoring');
 app.use(performanceMonitoring);

@@ -79,5 +79,12 @@ const testConnection = async () => {
   }
 };
 
+// Setup query monitoring in production
+if (process.env.NODE_ENV === 'production') {
+  const { setupQueryMonitoring, startPeriodicMonitoring } = require('../middleware/queryMonitoring');
+  setupQueryMonitoring(sequelize);
+  startPeriodicMonitoring(sequelize, 5 * 60 * 1000); // Every 5 minutes
+}
+
 module.exports = { sequelize, testConnection };
 
