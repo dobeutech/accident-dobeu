@@ -5,6 +5,7 @@ const AWS = require('aws-sdk');
 const { authenticate, requirePermission } = require('../middleware/auth');
 const { enforceFleetContext } = require('../middleware/fleetContext');
 const { sequelize } = require('../database/connection');
+const imageValidationService = require('../services/imageValidationService');
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -112,6 +113,15 @@ router.post('/photos/:reportId', [
       reportId, 
       fleetId: fleet_id 
     });
+    
+    // Trigger AI image validation asynchronously
+    imageValidationService.validateImage(photo.id, reportId, fleet_id, fileKey)
+      .then(validation => {
+        logger.info(`Image validation completed for photo ${photo.id}`, { validation });
+      })
+      .catch(error => {
+        logger.error(`Image validation failed for photo ${photo.id}:`, error);
+      });
     
     res.status(201).json({ photo });
   } catch (error) {

@@ -40,3 +40,25 @@ INSERT INTO permissions (role, resource, action) VALUES
 ('driver', 'reports', 'read_own')
 ON CONFLICT DO NOTHING;
 
+-- Telematics and Kill Switch Permissions
+INSERT INTO permissions (role, resource, action) VALUES
+('fleet_admin', 'vehicles', 'read'),
+('fleet_admin', 'vehicles', 'write'),
+('fleet_admin', 'vehicles', 'create'),
+('fleet_admin', 'vehicles', 'delete'),
+('fleet_admin', 'kill_switch', 'read'),
+('fleet_admin', 'kill_switch', 'write'),
+('fleet_admin', 'telematics', 'read'),
+('fleet_admin', 'telematics', 'write'),
+('fleet_admin', 'telematics', 'create'),
+('fleet_admin', 'override', 'read'),
+('fleet_admin', 'override', 'approve'),
+('fleet_manager', 'vehicles', 'read'),
+('fleet_manager', 'kill_switch', 'read'),
+('fleet_manager', 'telematics', 'read'),
+('fleet_manager', 'override', 'read'),
+('fleet_manager', 'override', 'approve'),
+('driver', 'vehicles', 'read'),
+('driver', 'override', 'request')
+ON CONFLICT DO NOTHING;
+

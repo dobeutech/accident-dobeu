@@ -112,6 +112,8 @@ app.use('/api/form-configs', require('./routes/formConfigs'));
 app.use('/api/exports', require('./routes/exports'));
 app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/telematics', require('./routes/telematics'));
+app.use('/api/workflow', require('./routes/workflow'));
 
 // Socket.IO for real-time features
 io.use(require('./middleware/socketAuth'));
