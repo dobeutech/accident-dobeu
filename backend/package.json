@@ -40,7 +40,7 @@
     "winston": "^3.11.0",
     "compression": "^1.7.4",
     "uuid": "^9.0.1",
-    "pdfkit": "^0.14.0",
+    "pdfkit": "^0.17.2",
     "exceljs": "^4.4.0",
     "archiver": "^6.0.1",
     "docx": "^8.5.0",
