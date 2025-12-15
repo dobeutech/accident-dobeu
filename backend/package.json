@@ -43,7 +43,7 @@
     "pdfkit": "^0.14.0",
     "exceljs": "^4.4.0",
     "archiver": "^6.0.1",
-    "docx": "^8.5.0",
+    "docx": "^9.5.1",
     "cookie-parser": "^1.4.6",
     "csurf": "^1.11.0",
     "axios": "^1.6.2",
