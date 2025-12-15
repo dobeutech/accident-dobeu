@@ -13,7 +13,11 @@
     "load-test": "node scripts/load-test.js",
     "security-scan": "./scripts/security-scan.sh",
     "backup": "./scripts/backup-database.sh",
-    "restore": "./scripts/restore-database.sh"
+    "restore": "./scripts/restore-database.sh",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "format": "prettier --write \"src/**/*.js\"",
+    "prepare": "cd .. && husky install backend/.husky"
   },
   "keywords": ["fleet", "accident", "reporting"],
   "author": "",
@@ -42,13 +46,29 @@
     "docx": "^8.5.0",
     "cookie-parser": "^1.4.6",
     "csurf": "^1.11.0",
-    "axios": "^1.6.2"
+    "axios": "^1.6.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
     "jest": "^29.7.0",
     "supertest": "^6.3.3",
-    "autocannon": "^7.12.0"
+    "autocannon": "^7.12.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
+    "eslint": "^8.55.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "prettier": "^3.1.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }
 

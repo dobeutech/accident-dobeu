@@ -8,6 +8,8 @@ const cookieParser = require('cookie-parser');
 const csrf = require('csurf');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 const logger = require('./utils/logger');
 const { runStartupValidation } = require('./utils/validateEnv');
 
@@ -98,6 +100,18 @@ app.use(performanceMonitoring);
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`, { ip: req.ip });
   next();
+});
+
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Fleet Accident Reporting API',
+}));
+
+// OpenAPI JSON spec
+app.get('/api/openapi.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
 });
 
 // Health check routes
