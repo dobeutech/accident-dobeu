@@ -38,7 +38,7 @@ jobs:
         continue-on-error: true
       
       - name: Upload audit results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: audit-results
           path: |
@@ -61,7 +61,7 @@ jobs:
         continue-on-error: true
       
       - name: Upload ESLint results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: eslint-results
           path: web/eslint-report.json
@@ -149,7 +149,7 @@ jobs:
           cat security-report.md
       
       - name: Upload security report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: security-report
           path: security-report.md
