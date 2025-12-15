@@ -8,7 +8,45 @@ const logger = require('../utils/logger');
 
 const router = express.Router();
 
-// Get all vehicles for fleet
+/**
+ * @swagger
+ * /api/telematics/vehicles:
+ *   get:
+ *     summary: Get all vehicles for fleet
+ *     description: Retrieve all vehicles belonging to the authenticated user's fleet
+ *     tags: [Telematics]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive]
+ *         description: Filter by vehicle status
+ *       - in: query
+ *         name: kill_switch_enabled
+ *         schema:
+ *           type: boolean
+ *         description: Filter by kill switch capability
+ *     responses:
+ *       200:
+ *         description: List of vehicles
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 vehicles:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Vehicle'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 router.get('/vehicles', authenticate, enforceFleetContext, async (req, res) => {
   try {
     const fleet_id = req.user.fleet_id;

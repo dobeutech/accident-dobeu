@@ -133,6 +133,10 @@ app.use('/api/workflow', require('./routes/workflow'));
 io.use(require('./middleware/socketAuth'));
 require('./services/socketService')(io);
 
+// Initialize notification service
+const notificationService = require('./services/notificationService');
+notificationService.initialize(io);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   logger.error('Error:', err);
