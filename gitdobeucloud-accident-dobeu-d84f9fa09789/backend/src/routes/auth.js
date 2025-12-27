@@ -43,14 +43,14 @@ router.post('/register', [
     const { email, password, first_name, last_name, role, fleet_id, phone } = req.body;
     
     // Check if user already exists
-    const [existing] = await sequelize.query(`
+    const existing = await sequelize.query(`
       SELECT id FROM users WHERE email = :email
     `, {
       replacements: { email },
       type: sequelize.QueryTypes.SELECT
     });
     
-    if (existing) {
+    if (existing && existing.length > 0) {
       return res.status(400).json({ error: 'User already exists' });
     }
     
@@ -101,7 +101,7 @@ router.post('/login', authLimiter, accountLockout, [
     const { email, password } = req.body;
     
     // Find user
-    const [users] = await sequelize.query(`
+    const users = await sequelize.query(`
       SELECT u.*, f.name as fleet_name 
       FROM users u
       LEFT JOIN fleets f ON u.fleet_id = f.id
@@ -175,7 +175,7 @@ router.post('/login', authLimiter, accountLockout, [
 // Get current user
 router.get('/me', authenticate, async (req, res) => {
   try {
-    const [users] = await sequelize.query(`
+    const users = await sequelize.query(`
       SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.fleet_id, 
              u.phone, u.last_login, f.name as fleet_name
       FROM users u

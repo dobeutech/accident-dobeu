@@ -5,7 +5,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
-const csrf = require('csurf');
+const { csrfProtection } = require('./middleware/csrf');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const swaggerUi = require('swagger-ui-express');
@@ -64,16 +64,18 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // CSRF protection (exclude auth routes and health check)
-const csrfProtection = csrf({ cookie: true });
+const csrf = csrfProtection();
 app.use((req, res, next) => {
-  if (req.path === '/health' || req.path.startsWith('/api/auth/login') || req.path.startsWith('/api/auth/register')) {
+  if (req.path === '/health' || 
+      req.path.startsWith('/api/auth/login') || 
+      req.path.startsWith('/api/auth/register')) {
     return next();
   }
-  csrfProtection(req, res, next);
+  csrf(req, res, next);
 });
 
-// CSRF token endpoint
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
+// CSRF token endpoint (uses middleware to generate consistent tokens)
+app.get('/api/csrf-token', (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 

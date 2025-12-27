@@ -19,7 +19,7 @@ const authenticate = async (req, res, next) => {
     }
     
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || process.env.SESSION_SECRET);
       
       // Set user context for RLS
       req.user = decoded;

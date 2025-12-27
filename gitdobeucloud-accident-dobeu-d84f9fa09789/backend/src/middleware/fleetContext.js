@@ -13,7 +13,9 @@ const enforceFleetContext = async (req, res, next) => {
       // Allow fleet_id override in query/body for super admin
       if (req.query.fleet_id || req.body.fleet_id) {
         const fleetId = req.query.fleet_id || req.body.fleet_id;
-        await sequelize.query(`SET app.current_fleet_id = '${fleetId}'`);
+        await sequelize.query('SET app.current_fleet_id = :fleetId', {
+          replacements: { fleetId }
+        });
       }
       return next();
     }

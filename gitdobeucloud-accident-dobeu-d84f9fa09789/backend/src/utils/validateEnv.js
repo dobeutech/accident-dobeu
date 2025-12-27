@@ -7,28 +7,33 @@ function validateEnvironment() {
   const errors = [];
   const warnings = [];
 
-  // Required variables
+  // Required variables - support both Replit PG* and DB_* naming conventions
   const required = {
     NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
-    DB_HOST: process.env.DB_HOST,
-    DB_PORT: process.env.DB_PORT,
-    DB_NAME: process.env.DB_NAME,
-    DB_USER: process.env.DB_USER,
-    DB_PASSWORD: process.env.DB_PASSWORD,
-    JWT_SECRET: process.env.JWT_SECRET,
+    DB_HOST: process.env.PGHOST || process.env.DB_HOST,
+    DB_PORT: process.env.PGPORT || process.env.DB_PORT,
+    DB_NAME: process.env.PGDATABASE || process.env.DB_NAME,
+    DB_USER: process.env.PGUSER || process.env.DB_USER,
+    DB_PASSWORD: process.env.PGPASSWORD || process.env.DB_PASSWORD,
+    JWT_SECRET: process.env.JWT_SECRET || process.env.SESSION_SECRET,
     SESSION_SECRET: process.env.SESSION_SECRET
   };
 
-  // Check required variables
+  // Check required variables (support DATABASE_URL as alternative)
+  const hasDbUrl = !!process.env.DATABASE_URL;
   for (const [key, value] of Object.entries(required)) {
     if (!value) {
+      if (key.startsWith('DB_') && hasDbUrl) {
+        continue;
+      }
       errors.push(`Missing required environment variable: ${key}`);
     }
   }
 
-  // Validate JWT_SECRET length
-  if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
+  // Validate JWT_SECRET length (use SESSION_SECRET as fallback)
+  const jwtSecret = process.env.JWT_SECRET || process.env.SESSION_SECRET;
+  if (jwtSecret && jwtSecret.length < 32) {
     errors.push('JWT_SECRET must be at least 32 characters long');
   }
 

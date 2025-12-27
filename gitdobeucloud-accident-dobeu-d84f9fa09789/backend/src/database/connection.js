@@ -25,12 +25,8 @@ const dialectOptions = process.env.NODE_ENV === 'production' ? {
 };
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
+  process.env.DATABASE_URL || `postgres://${process.env.PGUSER || process.env.DB_USER}:${process.env.PGPASSWORD || process.env.DB_PASSWORD}@${process.env.PGHOST || process.env.DB_HOST}:${process.env.PGPORT || process.env.DB_PORT || 5432}/${process.env.PGDATABASE || process.env.DB_NAME}`,
   {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
     logging: process.env.NODE_ENV === 'production' 
       ? false 

@@ -16,8 +16,7 @@
     "restore": "./scripts/restore-database.sh",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
-    "format": "prettier --write \"src/**/*.js\"",
-    "prepare": "cd .. && husky install backend/.husky"
+    "format": "prettier --write \"src/**/*.js\""
   },
   "keywords": ["fleet", "accident", "reporting"],
   "author": "",
@@ -45,7 +44,6 @@
     "archiver": "^6.0.1",
     "docx": "^8.5.0",
     "cookie-parser": "^1.4.6",
-    "csurf": "^1.11.0",
     "axios": "^1.6.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"

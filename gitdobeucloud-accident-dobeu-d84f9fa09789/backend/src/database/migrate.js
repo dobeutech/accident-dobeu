@@ -4,13 +4,15 @@ const { Pool } = require('pg');
 require('dotenv').config();
 const logger = require('../utils/logger');
 
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD
-});
+const pool = process.env.DATABASE_URL 
+  ? new Pool({ connectionString: process.env.DATABASE_URL })
+  : new Pool({
+      host: process.env.PGHOST || process.env.DB_HOST,
+      port: process.env.PGPORT || process.env.DB_PORT || 5432,
+      database: process.env.PGDATABASE || process.env.DB_NAME,
+      user: process.env.PGUSER || process.env.DB_USER,
+      password: process.env.PGPASSWORD || process.env.DB_PASSWORD
+    });
 
 const runMigrations = async () => {
   const client = await pool.connect();
@@ -19,7 +21,7 @@ const runMigrations = async () => {
     
     const migrationsDir = path.join(__dirname, 'migrations');
     const files = fs.readdirSync(migrationsDir)
-      .filter(f => f.endsWith('.sql'))
+      .filter(f => f.endsWith('.sql') && !f.startsWith('rollback'))
       .sort();
     
     logger.info(`Found ${files.length} migration files`);

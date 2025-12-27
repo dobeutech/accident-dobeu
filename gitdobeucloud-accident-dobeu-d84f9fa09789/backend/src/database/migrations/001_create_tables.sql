@@ -1,9 +1,6 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Enable Row Level Security
-ALTER DATABASE accident_app SET row_security = on;
-
 -- Fleets table
 CREATE TABLE IF NOT EXISTS fleets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
