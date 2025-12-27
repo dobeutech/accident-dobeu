@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged
+echo "📝 Running lint-staged..."
+cd backend && npx lint-staged || {
+    echo "❌ Linting/formatting failed. Please fix errors before committing."
+    exit 1
+}
+
+# Check for secrets
+echo "🔐 Checking for secrets..."
+if git diff --cached --name-only | xargs grep -iE "(password|secret|api_key|token)\s*=\s*['\"][^'\"]+['\"]" 2>/dev/null | grep -v ".example" | grep -v "README" | grep -v "docs/" | grep -v ".template"; then
+    echo "⚠️  Warning: Possible secrets detected in staged files"
+    echo "Please review and ensure no sensitive data is being committed"
+    read -p "Continue anyway? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+fi
+
+echo "✅ Pre-commit checks passed!"
