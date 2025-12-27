@@ -56,7 +56,18 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || '*',
+  origin: function(origin, callback) {
+    const allowedOrigins = (process.env.CORS_ORIGIN?.split(',') || []).map(o => o.trim());
+    if (!origin) {
+      callback(null, true);
+    } else if (allowedOrigins.length === 0 || allowedOrigins.includes('*')) {
+      callback(null, origin);
+    } else if (allowedOrigins.includes(origin)) {
+      callback(null, origin);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
