@@ -1,0 +1,48 @@
+graph TB
+    subgraph "Client Layer"
+        MA[Mobile App]
+        WD[Web Dashboard]
+        SA[Super Admin]
+    end
+
+    subgraph "API Gateway"
+        NGINX[NGINX Proxy]
+    end
+
+    subgraph "Application"
+        API[Express API]
+        AUTH[Auth Service]
+        REPORT[Report Service]
+        IMG[Image Validation]
+        TELEM[Telematics]
+        WORK[Workflow]
+    end
+
+    subgraph "Data"
+        PG[(PostgreSQL)]
+        REDIS[(Redis)]
+        S3[AWS S3]
+    end
+
+    subgraph "External"
+        REKOG[AWS Rekognition]
+        GEOTAB[Geotab]
+        SAMSARA[Samsara]
+    end
+
+    MA --> NGINX
+    WD --> NGINX
+    SA --> NGINX
+    NGINX --> API
+    API --> AUTH
+    API --> REPORT
+    API --> IMG
+    API --> TELEM
+    API --> WORK
+    AUTH --> PG
+    REPORT --> PG
+    IMG --> REKOG
+    IMG --> S3
+    TELEM --> GEOTAB
+    TELEM --> SAMSARA
+    WORK --> PG
