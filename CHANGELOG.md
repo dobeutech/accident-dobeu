@@ -1,5 +1,41 @@
 # Changelog
 
+## [Unreleased] - 2026-03-06
+
+### Pull Request Consolidation
+
+- Consolidated the open backend dependency update PRs into a single integration change for `master`.
+- Consolidated the open GitHub Actions security workflow version bumps into one workflow update.
+
+### Dependencies
+
+- Updated `bcryptjs` to `^3.0.3`.
+- Updated `dotenv` to `^17.3.1`.
+- Updated `helmet` to `^8.1.0`.
+- Updated `express-rate-limit` to `^8.2.1`.
+- Updated `multer` to `^2.1.1`.
+- Updated `archiver` to `^7.0.1`.
+- Updated `docx` to `^9.6.0`.
+- Updated `jest` to `^30.2.0`.
+- Updated `supertest` to `^7.1.4`.
+- Updated `eslint` to `^9.39.2`.
+- Updated `lint-staged` to `^16.3.1`.
+- Added `backend/package-lock.json` for reproducible CI installs.
+- Added `backend/.npmrc` to preserve peer dependency resolution for ESLint 9 with the Airbnb config.
+- Added `eslint-formatter-stylish` so lint output still works under ESLint 9 legacy config mode.
+
+### CI/CD
+
+- Updated `actions/upload-artifact` to `v7` in the security scan workflow.
+- Updated `actions/download-artifact` to `v8` in the security scan workflow.
+- Updated `github/codeql-action` steps to `v4` in the security scan workflow.
+
+### Validation
+
+- Verified `npm ci` completes successfully in `backend/` using the committed lockfile.
+- Verified the updated `rateLimiting` middleware and `uploads` route load successfully.
+- Confirmed the backend Jest suite and ESLint violations already fail on the original `master` baseline and were not introduced by this consolidation.
+
 ## [2.0.0] - 2024-12-14 - PRODUCTION READY
 
 ### 🎉 Major Release - Production Ready

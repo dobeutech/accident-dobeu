@@ -1,0 +1,25 @@
+{
+  "session": {
+    "created_at": "2026-03-06T20:44:43+00:00",
+    "updated_at": "2026-03-06T20:44:43+00:00",
+    "platform": "cursor-cloud"
+  },
+  "features": [
+    {
+      "id": "pr-consolidation-master-20260306",
+      "category": "git-integration",
+      "description": "Consolidate open dependency and CI pull request changes into the master line",
+      "steps": [
+        "Inspect open PR branches and determine the consolidated change set",
+        "Integrate selected dependency and workflow updates into the repo",
+        "Generate a backend lockfile and resolve install compatibility issues",
+        "Validate via npm ci, lint, tests, and smoke checks",
+        "Commit and push the consolidated branch"
+      ],
+      "status": "completed",
+      "passes": false,
+      "priority": "high",
+      "dependencies": []
+    }
+  ]
+}
