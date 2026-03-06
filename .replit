@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "postgresql-16"]
+modules = ["nodejs-20", "bash", "web"]
 [nix]
 channel = "stable-25_05"
 packages = ["unzip"]
@@ -22,13 +22,17 @@ args = "Fleet Accident App"
 name = "Fleet Accident App"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd gitdobeucloud-accident-dobeu-d84f9fa09789 && (cd backend && node src/server.js &) && cd web && npm run dev"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "(cd backend && node src/server.js &) && cd web && npx vite --host 0.0.0.0 --port 5000"
+waitForPort = 5000
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
 
 [[ports]]
 localPort = 5000

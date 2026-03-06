@@ -1,9 +1,24 @@
 const logger = require('./logger');
 
 /**
+ * Map Replit PostgreSQL env vars to the DB_* names used by this app.
+ * This runs before validation so the rest of the code can stay unchanged.
+ */
+function applyReplitEnvMappings() {
+  if (!process.env.DB_HOST && process.env.PGHOST) process.env.DB_HOST = process.env.PGHOST;
+  if (!process.env.DB_PORT && process.env.PGPORT) process.env.DB_PORT = process.env.PGPORT;
+  if (!process.env.DB_NAME && process.env.PGDATABASE) process.env.DB_NAME = process.env.PGDATABASE;
+  if (!process.env.DB_USER && process.env.PGUSER) process.env.DB_USER = process.env.PGUSER;
+  if (!process.env.DB_PASSWORD && process.env.PGPASSWORD) process.env.DB_PASSWORD = process.env.PGPASSWORD;
+  if (!process.env.JWT_SECRET && process.env.SESSION_SECRET) process.env.JWT_SECRET = process.env.SESSION_SECRET;
+}
+
+/**
  * Validate required environment variables
  */
 function validateEnvironment() {
+  applyReplitEnvMappings();
+
   const errors = [];
   const warnings = [];
 
