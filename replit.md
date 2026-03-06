@@ -28,8 +28,9 @@ Preferred communication style: Simple, everyday language.
 - Real-time updates via Socket.io client
 - Input sanitization with DOMPurify for XSS protection
 - Charts/analytics using Recharts
-- Pages: Login, Reports, Report Detail, Drivers, Vehicles, Form Config, Users, Analytics, Settings
+- Pages: Login, Register, Reports, Report Detail, Drivers, Vehicles, Form Config, Users, Analytics, Settings
 - API calls use relative paths through Vite proxy (configured to forward `/api` and `/socket.io` to backend on port 3000)
+- Registration page at `/register` with role selection (driver, fleet_manager, fleet_admin)
 
 **Mobile App (React Native/Expo)**
 - Located in `/mobile`
@@ -51,6 +52,8 @@ Preferred communication style: Simple, everyday language.
 - `/ping` endpoint for uptime monitoring (UptimeRobot compatible)
 - `/health` and `/health/detailed` endpoints for health checks
 - Database keep-alive interval (60s) to prevent idle connection drops
+- Static file serving with cache headers (1-day cache for `/public`, 7-day cache for Vite build output)
+- Catch-all middleware serves Vite-built frontend in production (for SPA routing)
 
 **Core Services:**
 - `imageValidationService.js` - AWS Rekognition integration for AI image analysis
@@ -89,6 +92,36 @@ Preferred communication style: Simple, everyday language.
 - Graceful shutdown handling for zero-downtime deployments
 - Request validation using express-validator
 - Standardized error handling with error boundaries (React) and global handlers (Express)
+- Express 5 compatible route patterns (no wildcard `*` routes, use middleware instead)
+
+## Database Seeding
+
+- Seed script: `backend/src/database/seed.js` (run via `cd backend && npm run seed`)
+- Default fleet: "Default Fleet"
+- Seeded users:
+  - Admin: admin@fleet.com / Admin123! (role: fleet_admin)
+  - Manager: manager@fleet.com / Manager123! (role: fleet_manager)
+  - Driver: driver@fleet.com / Driver123! (role: driver)
+- 3 sample vehicles seeded to the default fleet
+
+## Deployment Configuration
+
+- Target: VM (always-running, required for WebSocket/Socket.io support)
+- Build: `cd web && npm install && npm run build` (builds Vite frontend)
+- Run: `cd backend && node src/server.js` (serves API + built frontend)
+- In production, backend serves the Vite build from `web/dist` with SPA fallback
+- PORT defaults to 3000, NODE_ENV and PORT set as shared env vars
+
+## Environment Variables
+
+### Required Secrets
+- `JWT_SECRET` - JWT token signing key
+- `SESSION_SECRET` - Express session secret
+- `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` - PostgreSQL connection
+
+### Shared Environment Variables
+- `NODE_ENV` - development (shared)
+- `PORT` - 3000 (shared)
 
 ## External Dependencies
 

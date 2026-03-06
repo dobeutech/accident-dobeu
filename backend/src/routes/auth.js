@@ -115,7 +115,7 @@ router.post('/register', [
   body('password').isLength({ min: 8 }),
   body('first_name').trim().notEmpty(),
   body('last_name').trim().notEmpty(),
-  body('role').isIn(['fleet_admin', 'fleet_manager', 'fleet_viewer', 'driver']),
+  body('role').isIn(['fleet_viewer', 'driver']),
   body('fleet_id').optional().isUUID()
 ], async (req, res) => {
   try {
@@ -185,7 +185,7 @@ router.post('/login', authLimiter, accountLockout, [
     const { email, password } = req.body;
     
     // Find user
-    const [users] = await sequelize.query(`
+    const users = await sequelize.query(`
       SELECT u.*, f.name as fleet_name 
       FROM users u
       LEFT JOIN fleets f ON u.fleet_id = f.id
@@ -259,7 +259,7 @@ router.post('/login', authLimiter, accountLockout, [
 // Get current user
 router.get('/me', authenticate, async (req, res) => {
   try {
-    const [users] = await sequelize.query(`
+    const users = await sequelize.query(`
       SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.fleet_id, 
              u.phone, u.last_login, f.name as fleet_name
       FROM users u

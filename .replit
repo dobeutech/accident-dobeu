@@ -35,6 +35,10 @@ localPort = 3000
 externalPort = 3000
 
 [[ports]]
+localPort = 3001
+externalPort = 3003
+
+[[ports]]
 localPort = 5000
 externalPort = 80
 
@@ -47,3 +51,9 @@ externalPort = 3002
 [userenv.shared]
 NODE_ENV = "development"
 PORT = "3000"
+JWT_SECRET = "9931e25ebfd847960ff4a5949f23ea6c99105e5cf612a7d6d2387233f91d6d3898ae676d19b81907986c511527fa5c3a"
+
+[deployment]
+deploymentTarget = "vm"
+run = ["bash", "-c", "cd backend && node src/server.js"]
+build = ["bash", "-c", "cd web && npm install && npm run build"]

@@ -54,10 +54,10 @@ api.interceptors.response.use(
 export const authService = {
   login: async (email, password) => {
     const response = await api.post('/auth/login', { email, password });
-    // Refresh CSRF token after login
     await initCsrfToken();
     return response;
   },
+  register: (data) => api.post('/auth/register', data),
   logout: async () => {
     await api.post('/auth/logout');
     csrfToken = null;

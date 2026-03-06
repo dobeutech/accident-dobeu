@@ -114,6 +114,12 @@ app.get('/api/openapi.json', (req, res) => {
   res.send(swaggerSpec);
 });
 
+// Static file serving with cache headers
+app.use(express.static('public', {
+  maxAge: '1d',
+  etag: true
+}));
+
 // Ping endpoint for uptime monitoring
 app.get('/ping', (req, res) => {
   res.status(200).send('pong');
@@ -151,6 +157,22 @@ app.use((err, req, res, next) => {
     error: err.message || 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
+});
+
+// Serve Vite-built frontend in production
+const path = require('path');
+const fs = require('fs');
+const frontendBuildPath = path.join(__dirname, '../../web/dist');
+const frontendIndexPath = path.join(frontendBuildPath, 'index.html');
+app.use(express.static(frontendBuildPath, { maxAge: '7d', etag: true }));
+app.use((req, res, next) => {
+  if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.startsWith('/health') || req.path === '/ping' || req.path.startsWith('/socket.io') || req.path.startsWith('/api-docs')) {
+    return next();
+  }
+  if (fs.existsSync(frontendIndexPath)) {
+    return res.sendFile(frontendIndexPath);
+  }
+  next();
 });
 
 // 404 handler
