@@ -114,6 +114,11 @@ app.get('/api/openapi.json', (req, res) => {
   res.send(swaggerSpec);
 });
 
+// Ping endpoint for uptime monitoring
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
+});
+
 // Health check routes
 app.use('/health', require('./routes/health'));
 
@@ -121,6 +126,8 @@ app.use('/health', require('./routes/health'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/fleets', require('./routes/fleets'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/drivers', require('./routes/drivers'));
+app.use('/api/vehicles', require('./routes/vehicles'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/form-configs', require('./routes/formConfigs'));
 app.use('/api/exports', require('./routes/exports'));
@@ -151,6 +158,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
+const { sequelize } = require('./database/connection');
 const PORT = process.env.PORT || 3000;
 
 // Graceful shutdown handler
@@ -203,6 +211,15 @@ httpServer.listen(PORT, () => {
     process.send('ready');
   }
 });
+
+// Database keep-alive query
+setInterval(async () => {
+  try {
+    await sequelize.query('SELECT 1');
+  } catch (err) {
+    logger.error('Database keep-alive query failed:', err);
+  }
+}, 60000);
 
 module.exports = { app, io };
 

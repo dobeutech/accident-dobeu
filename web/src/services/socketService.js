@@ -7,7 +7,7 @@ export const initSocket = () => {
     socket.disconnect();
   }
 
-  socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000', {
+  socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || '/', {
     withCredentials: true, // Use cookies for auth
     transports: ['websocket', 'polling']
   });

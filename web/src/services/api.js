@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -39,13 +39,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Store current path for redirect after login
+    const requestUrl = error.config?.url || '';
+    if (error.response?.status === 401 && !requestUrl.includes('/auth/me')) {
       const currentPath = window.location.pathname;
       if (currentPath !== '/login') {
         sessionStorage.setItem('redirect_after_login', currentPath);
+        window.location.href = '/login';
       }
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
@@ -84,6 +84,20 @@ export const userService = {
   create: (data) => api.post('/users', data),
   update: (id, data) => api.put(`/users/${id}`, data),
   delete: (id) => api.delete(`/users/${id}`)
+};
+
+export const driverService = {
+  getAll: (params) => api.get('/drivers', { params }),
+  getById: (id) => api.get(`/drivers/${id}`),
+  create: (data) => api.post('/drivers', data),
+  update: (id, data) => api.put(`/drivers/${id}`, data)
+};
+
+export const vehicleService = {
+  getAll: (params) => api.get('/vehicles', { params }),
+  getById: (id) => api.get(`/vehicles/${id}`),
+  create: (data) => api.post('/vehicles', data),
+  update: (id, data) => api.put(`/vehicles/${id}`, data)
 };
 
 export const exportService = {

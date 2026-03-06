@@ -7,6 +7,8 @@ import ReportsPage from './pages/ReportsPage';
 import ReportDetailPage from './pages/ReportDetailPage';
 import FormConfigPage from './pages/FormConfigPage';
 import UsersPage from './pages/UsersPage';
+import DriversPage from './pages/DriversPage';
+import VehiclesPage from './pages/VehiclesPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
 
@@ -30,6 +32,8 @@ function App() {
         <Route index element={<Navigate to="/reports" />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="reports/:id" element={<ReportDetailPage />} />
+        <Route path="drivers" element={<DriversPage />} />
+        <Route path="vehicles" element={<VehiclesPage />} />
         <Route path="form-config" element={<FormConfigPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />

@@ -37,6 +37,8 @@ export default function DashboardLayout() {
 
   const navItems = [
     { path: '/reports', label: 'Reports', icon: '📄' },
+    { path: '/drivers', label: 'Drivers', icon: '🚗' },
+    { path: '/vehicles', label: 'Vehicles', icon: '🚛' },
     { path: '/form-config', label: 'Form Builder', icon: '⚙️' },
     { path: '/users', label: 'Users', icon: '👥' },
     { path: '/analytics', label: 'Analytics', icon: '📊' },

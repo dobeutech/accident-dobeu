@@ -28,6 +28,8 @@ Preferred communication style: Simple, everyday language.
 - Real-time updates via Socket.io client
 - Input sanitization with DOMPurify for XSS protection
 - Charts/analytics using Recharts
+- Pages: Login, Reports, Report Detail, Drivers, Vehicles, Form Config, Users, Analytics, Settings
+- API calls use relative paths through Vite proxy (configured to forward `/api` and `/socket.io` to backend on port 3000)
 
 **Mobile App (React Native/Expo)**
 - Located in `/mobile`
@@ -45,6 +47,10 @@ Preferred communication style: Simple, everyday language.
 - WebSocket support via Socket.io for real-time features
 - PM2 cluster mode for production scaling
 - Swagger/OpenAPI documentation at `/api-docs`
+- Dedicated `/api/drivers` and `/api/vehicles` CRUD routes
+- `/ping` endpoint for uptime monitoring (UptimeRobot compatible)
+- `/health` and `/health/detailed` endpoints for health checks
+- Database keep-alive interval (60s) to prevent idle connection drops
 
 **Core Services:**
 - `imageValidationService.js` - AWS Rekognition integration for AI image analysis
