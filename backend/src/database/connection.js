@@ -8,6 +8,20 @@ if (!process.env.DB_NAME && process.env.PGDATABASE) process.env.DB_NAME = proces
 if (!process.env.DB_USER && process.env.PGUSER) process.env.DB_USER = process.env.PGUSER;
 if (!process.env.DB_PASSWORD && process.env.PGPASSWORD) process.env.DB_PASSWORD = process.env.PGPASSWORD;
 
+// Map DATABASE_URL to DB_* for platforms like Render that provide connection string
+if (process.env.DATABASE_URL && !process.env.DB_HOST) {
+  try {
+    const url = new URL(process.env.DATABASE_URL);
+    process.env.DB_HOST = process.env.DB_HOST || url.hostname;
+    process.env.DB_PORT = process.env.DB_PORT || url.port || '5432';
+    process.env.DB_NAME = process.env.DB_NAME || url.pathname?.slice(1) || '';
+    process.env.DB_USER = process.env.DB_USER || url.username;
+    process.env.DB_PASSWORD = process.env.DB_PASSWORD || url.password;
+  } catch (e) {
+    logger.warn('Could not parse DATABASE_URL:', e.message);
+  }
+}
+
 // Production-ready connection pool configuration
 const poolConfig = {
   max: parseInt(process.env.DB_POOL_MAX) || 10,
@@ -31,36 +45,42 @@ const dialectOptions = process.env.NODE_ENV === 'production' ? {
   keepAlive: true
 };
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 5432,
-    dialect: 'postgres',
-    logging: process.env.NODE_ENV === 'production' 
-      ? false 
-      : (msg) => logger.debug(msg),
-    pool: poolConfig,
-    dialectOptions,
-    retry: {
-      max: 3,
-      timeout: 3000,
-      match: [
-        /SequelizeConnectionError/,
-        /SequelizeConnectionRefusedError/,
-        /SequelizeHostNotFoundError/,
-        /SequelizeHostNotReachableError/,
-        /SequelizeInvalidConnectionError/,
-        /SequelizeConnectionTimedOutError/,
-        /TimeoutError/
-      ]
-    },
-    benchmark: process.env.NODE_ENV !== 'production',
-    logQueryParameters: process.env.NODE_ENV !== 'production'
-  }
-);
+const sequelizeConfig = {
+  dialect: 'postgres',
+  logging: process.env.NODE_ENV === 'production'
+    ? false
+    : (msg) => logger.debug(msg),
+  pool: poolConfig,
+  dialectOptions,
+  retry: {
+    max: 3,
+    timeout: 3000,
+    match: [
+      /SequelizeConnectionError/,
+      /SequelizeConnectionRefusedError/,
+      /SequelizeHostNotFoundError/,
+      /SequelizeHostNotReachableError/,
+      /SequelizeInvalidConnectionError/,
+      /SequelizeConnectionTimedOutError/,
+      /TimeoutError/
+    ]
+  },
+  benchmark: process.env.NODE_ENV !== 'production',
+  logQueryParameters: process.env.NODE_ENV !== 'production'
+};
+
+const sequelize = process.env.DATABASE_URL
+  ? new Sequelize(process.env.DATABASE_URL, sequelizeConfig)
+  : new Sequelize(
+      process.env.DB_NAME,
+      process.env.DB_USER,
+      process.env.DB_PASSWORD,
+      {
+        ...sequelizeConfig,
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT || 5432
+      }
+    );
 
 // Monitor pool health
 if (process.env.NODE_ENV === 'production') {

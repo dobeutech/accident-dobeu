@@ -1,0 +1,41 @@
+# Render Blueprint - Fleet Accident Reporting System
+# https://render.com/docs/blueprint-spec
+#
+# Required: Add these in Render Dashboard after first deploy:
+#   AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET
+#   CORS_ORIGIN (e.g. https://accident-app.onrender.com)
+
+databases:
+  - name: accident-app-db
+    plan: free
+
+services:
+  - type: web
+    name: accident-app
+    runtime: node
+
+    rootDir: .
+
+    buildCommand: |
+      cd backend && npm install
+      cd ../web && npm install && npm run build
+
+    preDeployCommand: cd backend && npm run migrate
+
+    startCommand: cd backend && npm start
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: accident-app-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"

@@ -22,15 +22,18 @@ function validateEnvironment() {
   const errors = [];
   const warnings = [];
 
-  // Required variables
+  // Required variables (DATABASE_URL can substitute for DB_* on platforms like Render)
+  const hasDatabaseUrl = !!process.env.DATABASE_URL;
   const required = {
     NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
-    DB_HOST: process.env.DB_HOST,
-    DB_PORT: process.env.DB_PORT,
-    DB_NAME: process.env.DB_NAME,
-    DB_USER: process.env.DB_USER,
-    DB_PASSWORD: process.env.DB_PASSWORD,
+    ...(hasDatabaseUrl ? {} : {
+      DB_HOST: process.env.DB_HOST,
+      DB_PORT: process.env.DB_PORT,
+      DB_NAME: process.env.DB_NAME,
+      DB_USER: process.env.DB_USER,
+      DB_PASSWORD: process.env.DB_PASSWORD
+    }),
     JWT_SECRET: process.env.JWT_SECRET,
     SESSION_SECRET: process.env.SESSION_SECRET
   };
