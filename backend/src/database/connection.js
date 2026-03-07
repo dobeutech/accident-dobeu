@@ -18,8 +18,9 @@ const poolConfig = {
   maxUses: 1000 // Close connection after 1000 uses to prevent memory leaks
 };
 
-// SSL configuration for production
-const dialectOptions = process.env.NODE_ENV === 'production' ? {
+// SSL configuration (Supabase/Neon require SSL; use for production or when DB_SSL=true)
+const useSsl = process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production';
+const dialectOptions = useSsl ? {
   ssl: {
     require: true,
     rejectUnauthorized: false
@@ -31,7 +32,32 @@ const dialectOptions = process.env.NODE_ENV === 'production' ? {
   keepAlive: true
 };
 
-const sequelize = new Sequelize(
+// Prefer DATABASE_URL for Supabase, Neon, and other connection-string providers
+// Cloud providers (Supabase/Neon) require SSL; enable when DATABASE_URL is set or DB_SSL=true
+const useSslForUrl = !!process.env.DATABASE_URL || useSsl;
+
+const sequelize = process.env.DATABASE_URL
+  ? new Sequelize(process.env.DATABASE_URL, {
+      logging: process.env.NODE_ENV === 'production' ? false : (msg) => logger.debug(msg),
+      pool: poolConfig,
+      dialectOptions: useSslForUrl ? dialectOptions : { keepAlive: true },
+      retry: {
+        max: 3,
+        timeout: 3000,
+        match: [
+          /SequelizeConnectionError/,
+          /SequelizeConnectionRefusedError/,
+          /SequelizeHostNotFoundError/,
+          /SequelizeHostNotReachableError/,
+          /SequelizeInvalidConnectionError/,
+          /SequelizeConnectionTimedOutError/,
+          /TimeoutError/
+        ]
+      },
+      benchmark: process.env.NODE_ENV !== 'production',
+      logQueryParameters: process.env.NODE_ENV !== 'production'
+    })
+  : new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
   process.env.DB_PASSWORD,
