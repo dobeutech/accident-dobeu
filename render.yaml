@@ -1,0 +1,110 @@
+services:
+  # The backend serves the Vite production build from web/dist.
+  - type: web
+    name: fleet-accident-reporting
+    runtime: node
+    plan: starter
+    autoDeploy: true
+    buildCommand: |
+      npm ci --prefix backend
+      npm install --prefix web
+      npm run build --prefix web
+    preDeployCommand: npm run migrate --prefix backend
+    startCommand: npm start --prefix backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        fromDatabase:
+          name: fleet-accident-reporting-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: fleet-accident-reporting-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: fleet-accident-reporting-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: fleet-accident-reporting-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: fleet-accident-reporting-db
+          property: password
+      - key: DB_SSL
+        value: "true"
+      - key: DB_POOL_MIN
+        value: "2"
+      - key: DB_POOL_MAX
+        value: "10"
+      - key: DB_IDLE_TIMEOUT
+        value: "10000"
+      - key: DB_CONNECTION_TIMEOUT
+        value: "2000"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: "24h"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAME_SITE
+        value: "strict"
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "100"
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_S3_BUCKET
+        sync: false
+      # uploads.js expects S3_BUCKET_NAME while other services use AWS_S3_BUCKET.
+      - key: S3_BUCKET_NAME
+        sync: false
+      - key: LOG_LEVEL
+        value: "info"
+      - key: ENABLE_SWAGGER_DOCS
+        value: "false"
+      - key: ENABLE_DEBUG_LOGGING
+        value: "false"
+      - key: ENABLE_METRICS
+        value: "true"
+      - key: BCRYPT_ROUNDS
+        value: "12"
+      - key: MAX_LOGIN_ATTEMPTS
+        value: "5"
+      - key: LOCKOUT_DURATION
+        value: "900000"
+      - key: MAX_FILE_SIZE
+        value: "10485760"
+      - key: ALLOWED_FILE_TYPES
+        value: image/jpeg,image/png,image/gif,application/pdf
+      - key: SOCKET_PING_TIMEOUT
+        value: "60000"
+      - key: SOCKET_PING_INTERVAL
+        value: "25000"
+      - key: AI_PROVIDER
+        value: "aws_rekognition"
+      - key: AI_MIN_CONFIDENCE
+        value: "70"
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: KILL_SWITCH_AUTO_ENGAGE
+        value: "true"
+      - key: KILL_SWITCH_TIMEOUT_HOURS
+        value: "24"
+
+databases:
+  - name: fleet-accident-reporting-db
+    plan: starter

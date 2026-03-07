@@ -34,3 +34,29 @@
 ## Notes
 
 - Rube GitHub tool discovery failed with a transport error during session startup, so repository and PR inspection was completed with local git metadata and the read-only GitHub CLI.
+
+---
+
+## Session 2026-03-07T23:13:21+00:00
+
+- Branch: `cursor-dev/render-blueprint-yaml-e762`
+- Base commit at start: `d9e8b63`
+
+### Completed
+
+- Added a root-level `render.yaml` for a Render Blueprint deployment.
+- Configured a single Node web service that builds `web/`, serves it through `backend/`, and provisions a managed PostgreSQL database.
+- Wired Render Blueprint environment variables for database credentials, generated secrets, health checks, and required manual AWS/CORS values.
+- Updated `README.md` with Render deployment notes and the manual environment values that still need to be supplied in Render.
+
+### Validation
+
+- `npm ci --prefix backend`: pass
+- `npm install --prefix web --package-lock=false`: pass
+- `npm run build --prefix web`: pass
+
+### Next Steps
+
+1. Create a new Render Blueprint from this repository.
+2. Fill in the manual environment values in Render, especially `CORS_ORIGIN`, AWS credentials, and matching S3 bucket variables.
+3. Confirm the first deploy completes migrations and passes the `/health` check.

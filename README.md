@@ -249,6 +249,24 @@ docker-compose -f docker-compose.production.yml up -d
 ### Option 3: CI/CD (GitHub Actions)
 Push to `main` branch triggers automatic deployment
 
+### Option 4: Render Blueprint
+
+The repository now includes a root-level `render.yaml` that provisions:
+
+- one Node web service that builds `web/` and serves it through `backend/`
+- one managed PostgreSQL database
+
+To deploy with Render, create a new Blueprint from this repository and provide the manual environment values Render cannot generate automatically:
+
+- `CORS_ORIGIN` - the public Render URL or custom domain for the app
+- `AWS_REGION`
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_S3_BUCKET`
+- `S3_BUCKET_NAME` - set this to the same bucket value as `AWS_S3_BUCKET`
+
+The Blueprint runs backend migrations with `npm run migrate --prefix backend` before each deploy and uses `/health` for health checks.
+
 ## 📈 Performance Targets
 
 | Metric | Target | Status |
