@@ -2,7 +2,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Enable Row Level Security (uses current database)
-ALTER DATABASE heliumdb SET row_security = on;
 
 -- Fleets table
 CREATE TABLE IF NOT EXISTS fleets (
