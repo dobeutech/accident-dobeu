@@ -389,7 +389,7 @@ class ImageValidationService {
    * Update validation record in database
    */
   async updateValidationRecord(validationId, results, processingTime) {
-    const fields = Object.keys(results).map(key => `${key} = :${key}`).join(', ');
+    const fields = Object.keys(results).map(key => `"${key}" = :${key}`).join(', ');
     
     await sequelize.query(`
       UPDATE image_validations 
