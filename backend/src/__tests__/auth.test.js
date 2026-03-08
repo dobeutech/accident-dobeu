@@ -14,7 +14,7 @@ describe('Authentication Endpoints', () => {
 
   describe('POST /api/auth/login', () => {
     it('should reject login without credentials', async () => {
-      const response = await request(app)
+      const response = await request(app) // eslint-disable-line no-await-in-loop
         .post('/api/auth/login')
         .send({})
         .expect(400);
@@ -23,7 +23,7 @@ describe('Authentication Endpoints', () => {
     });
 
     it('should reject login with invalid email format', async () => {
-      const response = await request(app)
+      const response = await request(app) // eslint-disable-line no-await-in-loop
         .post('/api/auth/login')
         .send({
           email: 'invalid-email',
@@ -35,7 +35,7 @@ describe('Authentication Endpoints', () => {
     });
 
     it('should reject login with missing password', async () => {
-      const response = await request(app)
+      const response = await request(app) // eslint-disable-line no-await-in-loop
         .post('/api/auth/login')
         .send({
           email: 'test@example.com',
@@ -46,7 +46,7 @@ describe('Authentication Endpoints', () => {
     });
 
     it('should return 401 for invalid credentials', async () => {
-      const response = await request(app)
+      const response = await request(app) // eslint-disable-line no-await-in-loop
         .post('/api/auth/login')
         .send({
           email: 'nonexistent@example.com',
@@ -64,14 +64,14 @@ describe('Authentication Endpoints', () => {
       };
 
       // Make 6 failed attempts (limit is 5)
-      for (let i = 0; i < 6; i++) {
-        await request(app)
+      for (let i = 0; i < 6; i += 1) {
+        await request(app) // eslint-disable-line no-await-in-loop
           .post('/api/auth/login')
           .send(credentials);
       }
 
       // 7th attempt should be rate limited
-      const response = await request(app)
+      const response = await request(app) // eslint-disable-line no-await-in-loop
         .post('/api/auth/login')
         .send(credentials)
         .expect(429);
@@ -83,7 +83,7 @@ describe('Authentication Endpoints', () => {
 
   describe('GET /api/auth/me', () => {
     it('should return 401 without authentication', async () => {
-      const response = await request(app)
+      const response = await request(app) // eslint-disable-line no-await-in-loop
         .get('/api/auth/me')
         .expect(401);
 
@@ -91,7 +91,7 @@ describe('Authentication Endpoints', () => {
     });
 
     it('should return 401 with invalid token', async () => {
-      const response = await request(app)
+      const response = await request(app) // eslint-disable-line no-await-in-loop
         .get('/api/auth/me')
         .set('Authorization', 'Bearer invalid-token')
         .expect(401);
@@ -102,7 +102,7 @@ describe('Authentication Endpoints', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should return 401 without authentication', async () => {
-      const response = await request(app)
+      const response = await request(app) // eslint-disable-line no-await-in-loop
         .post('/api/auth/logout')
         .expect(401);
 

@@ -22,7 +22,7 @@ jest.mock('../utils/logger', () => ({
 // Global test utilities
 global.testUtils = {
   generateMockToken: () => {
-    const jwt = require('jsonwebtoken');
+    const jwt = require('jsonwebtoken'); // eslint-disable-line global-require
     return jwt.sign(
       {
         userId: 'test-user-id',
