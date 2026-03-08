@@ -9,14 +9,12 @@ class WorkflowService {
     this.defaultSteps = [
       { id: 'basic_info', name: 'Basic Information', required: true },
       { id: 'location', name: 'Location Data', required: true },
-      {
-        id: 'photos', name: 'Accident Photos', required: true, minCount: 2,
-      },
+      { id: 'photos', name: 'Accident Photos', required: true, minCount: 2 },
       { id: 'photo_validation', name: 'Photo Validation', required: true },
       { id: 'description', name: 'Incident Description', required: true },
       { id: 'witnesses', name: 'Witness Information', required: false },
       { id: 'police_report', name: 'Police Report Number', required: false },
-      { id: 'submission', name: 'Report Submission', required: true },
+      { id: 'submission', name: 'Report Submission', required: true }
     ];
   }
 
@@ -28,7 +26,7 @@ class WorkflowService {
       logger.info(`Initializing workflow for report ${reportId}`);
 
       const steps = customSteps || this.defaultSteps;
-      const requiredSteps = steps.filter((s) => s.required);
+      const requiredSteps = steps.filter(s => s.required);
 
       const [result] = await sequelize.query(`
         INSERT INTO workflow_completions
@@ -42,13 +40,14 @@ class WorkflowService {
           fleet_id: fleetId,
           vehicle_id: vehicleId,
           driver_id: driverId,
-          steps_required: JSON.stringify(requiredSteps),
+          steps_required: JSON.stringify(requiredSteps)
         },
-        type: sequelize.QueryTypes.INSERT,
+        type: sequelize.QueryTypes.INSERT
       });
 
       logger.info(`Workflow initialized for report ${reportId}`);
       return result[0];
+
     } catch (error) {
       logger.error(`Failed to initialize workflow for report ${reportId}:`, error);
       throw error;
@@ -68,7 +67,7 @@ class WorkflowService {
         WHERE report_id = :report_id
       `, {
         replacements: { report_id: reportId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!workflows || workflows.length === 0) {
@@ -80,14 +79,14 @@ class WorkflowService {
       const stepsRequired = JSON.parse(workflow.steps_required || '[]');
 
       // Update completed steps
-      if (completed && !stepsCompleted.find((s) => s.id === stepId)) {
+      if (completed && !stepsCompleted.find(s => s.id === stepId)) {
         stepsCompleted.push({
           id: stepId,
           completedAt: new Date().toISOString(),
-          metadata,
+          metadata
         });
       } else if (!completed) {
-        const index = stepsCompleted.findIndex((s) => s.id === stepId);
+        const index = stepsCompleted.findIndex(s => s.id === stepId);
         if (index > -1) {
           stepsCompleted.splice(index, 1);
         }
@@ -95,7 +94,7 @@ class WorkflowService {
 
       // Calculate completion percentage
       const completionPercentage = Math.round(
-        (stepsCompleted.length / stepsRequired.length) * 100,
+        (stepsCompleted.length / stepsRequired.length) * 100
       );
 
       const isComplete = completionPercentage === 100;
@@ -114,9 +113,9 @@ class WorkflowService {
           report_id: reportId,
           steps_completed: JSON.stringify(stepsCompleted),
           completion_percentage: completionPercentage,
-          is_complete: isComplete,
+          is_complete: isComplete
         },
-        type: sequelize.QueryTypes.UPDATE,
+        type: sequelize.QueryTypes.UPDATE
       });
 
       // Check if workflow is complete and release kill switch
@@ -138,8 +137,9 @@ class WorkflowService {
         completionPercentage,
         isComplete,
         stepsCompleted: stepsCompleted.length,
-        stepsRequired: stepsRequired.length,
+        stepsRequired: stepsRequired.length
       };
+
     } catch (error) {
       logger.error(`Failed to update workflow step for report ${reportId}:`, error);
       throw error;
@@ -162,7 +162,7 @@ class WorkflowService {
         WHERE wc.report_id = :report_id
       `, {
         replacements: { report_id: reportId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!workflows || workflows.length === 0) {
@@ -178,9 +178,10 @@ class WorkflowService {
         steps_required: stepsRequired,
         steps_completed: stepsCompleted,
         pending_steps: stepsRequired.filter(
-          (req) => !stepsCompleted.find((comp) => comp.id === req.id),
-        ),
+          req => !stepsCompleted.find(comp => comp.id === req.id)
+        )
       };
+
     } catch (error) {
       logger.error(`Failed to check workflow status for report ${reportId}:`, error);
       throw error;
@@ -201,7 +202,7 @@ class WorkflowService {
         ORDER BY order_index
       `, {
         replacements: { report_id: reportId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!photos || photos.length === 0) {
@@ -214,14 +215,14 @@ class WorkflowService {
 
       // Check if all photos are valid
       const allValid = validationResults.every(
-        (r) => r.success && ['valid', 'manual_review'].includes(r.result?.status),
+        r => r.success && ['valid', 'manual_review'].includes(r.result?.status)
       );
 
       // Update workflow step
       if (allValid) {
         await this.updateStepCompletion(reportId, 'photo_validation', true, {
           photosValidated: photos.length,
-          validationResults,
+          validationResults
         });
       }
 
@@ -231,8 +232,9 @@ class WorkflowService {
         success: true,
         allValid,
         totalPhotos: photos.length,
-        validationResults,
+        validationResults
       };
+
     } catch (error) {
       logger.error(`Failed to validate photos for report ${reportId}:`, error);
       throw error;
@@ -252,7 +254,7 @@ class WorkflowService {
         WHERE report_id = :report_id AND kill_switch_engaged = true
       `, {
         replacements: { report_id: reportId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!workflows || workflows.length === 0) {
@@ -266,7 +268,7 @@ class WorkflowService {
         workflow.vehicle_id,
         reportId,
         userId,
-        'Workflow completed successfully',
+        'Workflow completed successfully'
       );
 
       // Update workflow
@@ -278,15 +280,16 @@ class WorkflowService {
         WHERE id = :workflow_id
       `, {
         replacements: { workflow_id: workflow.id },
-        type: sequelize.QueryTypes.UPDATE,
+        type: sequelize.QueryTypes.UPDATE
       });
 
       logger.info(`Kill switch released for report ${reportId}`);
 
       return {
         success: true,
-        message: 'Kill switch released. Vehicle is now operational.',
+        message: 'Kill switch released. Vehicle is now operational.'
       };
+
     } catch (error) {
       logger.error(`Failed to release kill switch for report ${reportId}:`, error);
       throw error;
@@ -306,7 +309,7 @@ class WorkflowService {
         WHERE report_id = :report_id
       `, {
         replacements: { report_id: reportId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!workflows || workflows.length === 0) {
@@ -335,9 +338,9 @@ class WorkflowService {
           user_id: userId,
           reason,
           urgency,
-          expires_at: expiresAt,
+          expires_at: expiresAt
         },
-        type: sequelize.QueryTypes.INSERT,
+        type: sequelize.QueryTypes.INSERT
       });
 
       // Update workflow
@@ -348,12 +351,13 @@ class WorkflowService {
         WHERE id = :workflow_id
       `, {
         replacements: { workflow_id: workflow.id },
-        type: sequelize.QueryTypes.UPDATE,
+        type: sequelize.QueryTypes.UPDATE
       });
 
       logger.info(`Supervisor override request created for report ${reportId}`);
 
       return result[0];
+
     } catch (error) {
       logger.error(`Failed to request supervisor override for report ${reportId}:`, error);
       throw error;
@@ -373,7 +377,7 @@ class WorkflowService {
         WHERE id = :request_id AND status = 'pending'
       `, {
         replacements: { request_id: overrideRequestId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!requests || requests.length === 0) {
@@ -395,9 +399,9 @@ class WorkflowService {
         replacements: {
           request_id: overrideRequestId,
           supervisor_id: supervisorId,
-          notes,
+          notes
         },
-        type: sequelize.QueryTypes.UPDATE,
+        type: sequelize.QueryTypes.UPDATE
       });
 
       // Update workflow
@@ -413,9 +417,9 @@ class WorkflowService {
         replacements: {
           workflow_id: request.workflow_completion_id,
           supervisor_id: supervisorId,
-          notes,
+          notes
         },
-        type: sequelize.QueryTypes.UPDATE,
+        type: sequelize.QueryTypes.UPDATE
       });
 
       // Disengage kill switch
@@ -423,7 +427,7 @@ class WorkflowService {
         request.vehicle_id,
         request.report_id,
         supervisorId,
-        `Supervisor override approved: ${notes}`,
+        `Supervisor override approved: ${notes}`
       );
 
       // Log event
@@ -433,15 +437,16 @@ class WorkflowService {
         request.report_id,
         'override_approved',
         supervisorId,
-        notes,
+        notes
       );
 
       logger.info(`Supervisor override approved for request ${overrideRequestId}`);
 
       return {
         success: true,
-        message: 'Override approved. Kill switch released.',
+        message: 'Override approved. Kill switch released.'
       };
+
     } catch (error) {
       logger.error(`Failed to approve supervisor override ${overrideRequestId}:`, error);
       throw error;
@@ -461,7 +466,7 @@ class WorkflowService {
         WHERE id = :request_id AND status = 'pending'
       `, {
         replacements: { request_id: overrideRequestId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!requests || requests.length === 0) {
@@ -483,9 +488,9 @@ class WorkflowService {
         replacements: {
           request_id: overrideRequestId,
           supervisor_id: supervisorId,
-          reason,
+          reason
         },
-        type: sequelize.QueryTypes.UPDATE,
+        type: sequelize.QueryTypes.UPDATE
       });
 
       // Log event
@@ -495,15 +500,16 @@ class WorkflowService {
         request.report_id,
         'override_denied',
         supervisorId,
-        reason,
+        reason
       );
 
       logger.info(`Supervisor override denied for request ${overrideRequestId}`);
 
       return {
         success: true,
-        message: 'Override denied. Kill switch remains engaged.',
+        message: 'Override denied. Kill switch remains engaged.'
       };
+
     } catch (error) {
       logger.error(`Failed to deny supervisor override ${overrideRequestId}:`, error);
       throw error;
@@ -537,10 +543,11 @@ class WorkflowService {
         ORDER BY sor.urgency DESC, sor.created_at ASC
       `, {
         replacements,
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       return requests;
+
     } catch (error) {
       logger.error('Failed to get pending override requests:', error);
       throw error;

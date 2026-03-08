@@ -14,7 +14,7 @@ const router = express.Router();
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
+  region: process.env.AWS_REGION
 });
 
 // Configure multer for memory storage
@@ -22,7 +22,7 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 10 * 1024 * 1024 // 10MB limit
   },
   fileFilter: (req, file, cb) => {
     // Allow images and audio
@@ -31,7 +31,7 @@ const upload = multer({
     } else {
       cb(new Error('Only images and audio files are allowed'));
     }
-  },
+  }
 });
 
 // Upload photo for report
@@ -39,7 +39,7 @@ router.post('/photos/:reportId', [
   authenticate,
   requirePermission('reports', 'write'),
   enforceFleetContext,
-  upload.single('photo'),
+  upload.single('photo')
 ], async (req, res) => {
   try {
     if (!req.file) {
@@ -47,7 +47,7 @@ router.post('/photos/:reportId', [
     }
 
     const { reportId } = req.params;
-    const { fleet_id } = req.user;
+    const fleet_id = req.user.fleet_id;
 
     // Verify report exists and belongs to fleet
     const [reports] = await sequelize.query(`
@@ -55,7 +55,7 @@ router.post('/photos/:reportId', [
       WHERE id = :report_id AND fleet_id = :fleet_id
     `, {
       replacements: { report_id: reportId, fleet_id },
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     if (!reports || reports.length === 0) {
@@ -71,7 +71,7 @@ router.post('/photos/:reportId', [
       Key: fileKey,
       Body: req.file.buffer,
       ContentType: req.file.mimetype,
-      ACL: 'private',
+      ACL: 'private'
     };
 
     const s3Result = await s3.upload(uploadParams).promise();
@@ -83,7 +83,7 @@ router.post('/photos/:reportId', [
       WHERE report_id = :report_id
     `, {
       replacements: { report_id: reportId },
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     // Save photo record
@@ -101,9 +101,9 @@ router.post('/photos/:reportId', [
         file_url: s3Result.Location,
         file_size: req.file.size,
         mime_type: req.file.mimetype,
-        order_index: (maxOrder[0]?.max_order || 0) + 1,
+        order_index: (maxOrder[0]?.max_order || 0) + 1
       },
-      type: sequelize.QueryTypes.INSERT,
+      type: sequelize.QueryTypes.INSERT
     });
 
     const photo = result[0];
@@ -111,15 +111,15 @@ router.post('/photos/:reportId', [
     logger.info(`Photo uploaded: ${fileKey}`, {
       photoId: photo.id,
       reportId,
-      fleetId: fleet_id,
+      fleetId: fleet_id
     });
 
     // Trigger AI image validation asynchronously
     imageValidationService.validateImage(photo.id, reportId, fleet_id, fileKey)
-      .then((validation) => {
+      .then(validation => {
         logger.info(`Image validation completed for photo ${photo.id}`, { validation });
       })
-      .catch((error) => {
+      .catch(error => {
         logger.error(`Image validation failed for photo ${photo.id}:`, error);
       });
 
@@ -135,7 +135,7 @@ router.post('/audio/:reportId', [
   authenticate,
   requirePermission('reports', 'write'),
   enforceFleetContext,
-  upload.single('audio'),
+  upload.single('audio')
 ], async (req, res) => {
   try {
     if (!req.file) {
@@ -147,7 +147,7 @@ router.post('/audio/:reportId', [
     }
 
     const { reportId } = req.params;
-    const { fleet_id } = req.user;
+    const fleet_id = req.user.fleet_id;
 
     // Verify report exists
     const [reports] = await sequelize.query(`
@@ -155,7 +155,7 @@ router.post('/audio/:reportId', [
       WHERE id = :report_id AND fleet_id = :fleet_id
     `, {
       replacements: { report_id: reportId, fleet_id },
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     if (!reports || reports.length === 0) {
@@ -171,7 +171,7 @@ router.post('/audio/:reportId', [
       Key: fileKey,
       Body: req.file.buffer,
       ContentType: req.file.mimetype,
-      ACL: 'private',
+      ACL: 'private'
     };
 
     const s3Result = await s3.upload(uploadParams).promise();
@@ -190,9 +190,9 @@ router.post('/audio/:reportId', [
         file_key: fileKey,
         file_url: s3Result.Location,
         file_size: req.file.size,
-        duration_seconds: null,
+        duration_seconds: null
       },
-      type: sequelize.QueryTypes.INSERT,
+      type: sequelize.QueryTypes.INSERT
     });
 
     const audio = result[0];
@@ -200,7 +200,7 @@ router.post('/audio/:reportId', [
     logger.info(`Audio uploaded: ${fileKey}`, {
       audioId: audio.id,
       reportId,
-      fleetId: fleet_id,
+      fleetId: fleet_id
     });
 
     res.status(201).json({ audio });
@@ -214,7 +214,7 @@ router.post('/audio/:reportId', [
 router.get('/signed-url/:fileKey', authenticate, enforceFleetContext, async (req, res) => {
   try {
     const { fileKey } = req.params;
-    const { fleet_id } = req.user;
+    const fleet_id = req.user.fleet_id;
 
     // Verify file belongs to fleet
     if (!fileKey.startsWith(`fleet-${fleet_id}/`)) {
@@ -225,7 +225,7 @@ router.get('/signed-url/:fileKey', authenticate, enforceFleetContext, async (req
     const signedUrl = s3.getSignedUrl('getObject', {
       Bucket: process.env.S3_BUCKET_NAME,
       Key: fileKey,
-      Expires: 3600,
+      Expires: 3600
     });
 
     res.json({ signed_url: signedUrl });

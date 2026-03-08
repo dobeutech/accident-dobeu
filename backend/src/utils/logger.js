@@ -13,7 +13,7 @@ const productionFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
   winston.format.metadata({ fillExcept: ['message', 'level', 'timestamp', 'label'] }),
-  winston.format.json(),
+  winston.format.json()
 );
 
 // Custom format for development
@@ -21,15 +21,13 @@ const developmentFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
   winston.format.colorize(),
-  winston.format.printf(({
-    timestamp, level, message, ...meta
-  }) => {
+  winston.format.printf(({ timestamp, level, message, ...meta }) => {
     let msg = `${timestamp} [${level}]: ${message}`;
     if (Object.keys(meta).length > 0) {
       msg += ` ${JSON.stringify(meta)}`;
     }
     return msg;
-  }),
+  })
 );
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -46,14 +44,14 @@ if (isProduction) {
       level: 'error',
       maxsize: 10485760, // 10MB
       maxFiles: 14,
-      tailable: true,
+      tailable: true
     }),
     // Combined logs
     new winston.transports.File({
       filename: path.join(logsDir, 'combined.log'),
       maxsize: 10485760, // 10MB
       maxFiles: 14,
-      tailable: true,
+      tailable: true
     }),
     // Security audit logs
     new winston.transports.File({
@@ -61,8 +59,8 @@ if (isProduction) {
       level: 'warn',
       maxsize: 10485760, // 10MB
       maxFiles: 30,
-      tailable: true,
-    }),
+      tailable: true
+    })
   );
 }
 
@@ -70,8 +68,8 @@ if (isProduction) {
 if (!isProduction) {
   transports.push(
     new winston.transports.Console({
-      format: developmentFormat,
-    }),
+      format: developmentFormat
+    })
   );
 }
 
@@ -80,10 +78,10 @@ const logger = winston.createLogger({
   format: isProduction ? productionFormat : developmentFormat,
   defaultMeta: {
     service: 'accident-app-backend',
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NODE_ENV || 'development'
   },
   transports,
-  exitOnError: false,
+  exitOnError: false
 });
 
 // Add security logging helper
@@ -101,8 +99,8 @@ logger.exceptions.handle(
   new winston.transports.File({
     filename: path.join(logsDir, 'exceptions.log'),
     maxsize: 10485760,
-    maxFiles: 7,
-  }),
+    maxFiles: 7
+  })
 );
 
 // Handle unhandled promise rejections
@@ -110,8 +108,8 @@ logger.rejections.handle(
   new winston.transports.File({
     filename: path.join(logsDir, 'rejections.log'),
     maxsize: 10485760,
-    maxFiles: 7,
-  }),
+    maxFiles: 7
+  })
 );
 
 module.exports = logger;

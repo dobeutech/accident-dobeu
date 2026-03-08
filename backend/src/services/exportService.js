@@ -1,7 +1,7 @@
+const { sequelize } = require('../database/connection');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const { v4: uuidv4 } = require('uuid');
-const { sequelize } = require('../database/connection');
 const logger = require('../utils/logger');
 
 // Note: This is a simplified version. Full implementation would require
@@ -29,7 +29,7 @@ class ExportService {
         ORDER BY r.created_at DESC
       `, {
         replacements,
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       // Get photos and audio for each report
@@ -38,14 +38,14 @@ class ExportService {
           SELECT * FROM report_photos WHERE report_id = :report_id ORDER BY order_index
         `, {
           replacements: { report_id: report.id },
-          type: sequelize.QueryTypes.SELECT,
+          type: sequelize.QueryTypes.SELECT
         });
 
         const [audio] = await sequelize.query(`
           SELECT * FROM report_audio WHERE report_id = :report_id ORDER BY created_at
         `, {
           replacements: { report_id: report.id },
-          type: sequelize.QueryTypes.SELECT,
+          type: sequelize.QueryTypes.SELECT
         });
 
         report.photos = photos;
@@ -78,7 +78,7 @@ class ExportService {
     const doc = new PDFDocument();
     const chunks = [];
 
-    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('data', chunk => chunks.push(chunk));
     doc.on('end', () => {});
 
     // Add content
@@ -123,7 +123,7 @@ class ExportService {
         resolve({
           data: Buffer.concat(chunks),
           contentType: 'application/pdf',
-          filename: `accident-reports-${Date.now()}.pdf`,
+          filename: `accident-reports-${Date.now()}.pdf`
         });
       });
     });
@@ -140,18 +140,18 @@ class ExportService {
       { header: 'Date', key: 'incident_date', width: 20 },
       { header: 'Type', key: 'incident_type', width: 15 },
       { header: 'Status', key: 'status', width: 15 },
-      { header: 'Location', key: 'address', width: 30 },
+      { header: 'Location', key: 'address', width: 30 }
     ];
 
     // Add rows
-    reports.forEach((report) => {
+    reports.forEach(report => {
       worksheet.addRow({
         report_number: report.report_number,
         driver_name: report.driver_name || 'N/A',
         incident_date: new Date(report.incident_date),
         incident_type: report.incident_type,
         status: report.status,
-        address: report.address || 'N/A',
+        address: report.address || 'N/A'
       });
     });
 
@@ -160,30 +160,30 @@ class ExportService {
     return {
       data: buffer,
       contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      filename: `accident-reports-${Date.now()}.xlsx`,
+      filename: `accident-reports-${Date.now()}.xlsx`
     };
   }
 
   async exportToCSV(reports) {
     const headers = ['Report Number', 'Driver', 'Date', 'Type', 'Status', 'Location'];
-    const rows = reports.map((report) => [
+    const rows = reports.map(report => [
       report.report_number,
       report.driver_name || 'N/A',
       new Date(report.incident_date).toISOString(),
       report.incident_type,
       report.status,
-      report.address || 'N/A',
+      report.address || 'N/A'
     ]);
 
     const csv = [
       headers.join(','),
-      ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
     return {
       data: Buffer.from(csv, 'utf-8'),
       contentType: 'text/csv',
-      filename: `accident-reports-${Date.now()}.csv`,
+      filename: `accident-reports-${Date.now()}.csv`
     };
   }
 
@@ -191,7 +191,7 @@ class ExportService {
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<accident_reports>\n';
 
-    reports.forEach((report) => {
+    reports.forEach(report => {
       xml += '  <report>\n';
       xml += `    <report_number>${this.escapeXml(report.report_number)}</report_number>\n`;
       xml += `    <driver_name>${this.escapeXml(report.driver_name || 'N/A')}</driver_name>\n`;
@@ -209,7 +209,7 @@ class ExportService {
     return {
       data: Buffer.from(xml, 'utf-8'),
       contentType: 'application/xml',
-      filename: `accident-reports-${Date.now()}.xml`,
+      filename: `accident-reports-${Date.now()}.xml`
     };
   }
 
@@ -219,7 +219,7 @@ class ExportService {
     return {
       data: Buffer.from(json, 'utf-8'),
       contentType: 'application/json',
-      filename: `accident-reports-${Date.now()}.json`,
+      filename: `accident-reports-${Date.now()}.json`
     };
   }
 

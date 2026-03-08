@@ -1,7 +1,7 @@
-const axios = require('axios');
-const crypto = require('crypto');
 const { sequelize } = require('../database/connection');
 const logger = require('../utils/logger');
+const axios = require('axios');
+const crypto = require('crypto');
 
 class TelematicsService {
   constructor() {
@@ -11,7 +11,7 @@ class TelematicsService {
       verizon_connect: this.verizonConnectProvider.bind(this),
       fleet_complete: this.fleetCompleteProvider.bind(this),
       teletrac_navman: this.teletracNavmanProvider.bind(this),
-      custom: this.customProvider.bind(this),
+      custom: this.customProvider.bind(this)
     };
   }
 
@@ -30,7 +30,7 @@ class TelematicsService {
         WHERE v.id = :vehicle_id AND v.kill_switch_enabled = true
       `, {
         replacements: { vehicle_id: vehicleId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!vehicles || vehicles.length === 0) {
@@ -47,7 +47,7 @@ class TelematicsService {
         WHERE id = :vehicle_id
       `, {
         replacements: { vehicle_id: vehicleId },
-        type: sequelize.QueryTypes.UPDATE,
+        type: sequelize.QueryTypes.UPDATE
       });
 
       // Log kill switch event
@@ -59,7 +59,7 @@ class TelematicsService {
         userId,
         reason,
         vehicle.last_location_lat,
-        vehicle.last_location_lng,
+        vehicle.last_location_lng
       );
 
       // Send command to telematics provider
@@ -76,8 +76,9 @@ class TelematicsService {
         success: true,
         vehicleId,
         status: 'engaged',
-        message: 'Kill switch engaged. Vehicle immobilized.',
+        message: 'Kill switch engaged. Vehicle immobilized.'
       };
+
     } catch (error) {
       logger.error(`Failed to engage kill switch for vehicle ${vehicleId}:`, error);
       throw error;
@@ -99,7 +100,7 @@ class TelematicsService {
         WHERE v.id = :vehicle_id
       `, {
         replacements: { vehicle_id: vehicleId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!vehicles || vehicles.length === 0) {
@@ -116,7 +117,7 @@ class TelematicsService {
         WHERE id = :vehicle_id
       `, {
         replacements: { vehicle_id: vehicleId },
-        type: sequelize.QueryTypes.UPDATE,
+        type: sequelize.QueryTypes.UPDATE
       });
 
       // Log kill switch event
@@ -128,7 +129,7 @@ class TelematicsService {
         userId,
         reason,
         vehicle.last_location_lat,
-        vehicle.last_location_lng,
+        vehicle.last_location_lng
       );
 
       // Send command to telematics provider
@@ -145,8 +146,9 @@ class TelematicsService {
         success: true,
         vehicleId,
         status: 'inactive',
-        message: 'Kill switch disengaged. Vehicle operational.',
+        message: 'Kill switch disengaged. Vehicle operational.'
       };
+
     } catch (error) {
       logger.error(`Failed to disengage kill switch for vehicle ${vehicleId}:`, error);
       throw error;
@@ -166,7 +168,7 @@ class TelematicsService {
         WHERE wc.report_id = :report_id
       `, {
         replacements: { report_id: reportId },
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       });
 
       if (!workflows || workflows.length === 0) {
@@ -181,7 +183,7 @@ class TelematicsService {
           workflow.vehicle_id,
           reportId,
           workflow.driver_id,
-          'Accident workflow incomplete - automatic engagement',
+          'Accident workflow incomplete - automatic engagement'
         );
 
         // Update workflow
@@ -193,13 +195,14 @@ class TelematicsService {
           WHERE id = :workflow_id
         `, {
           replacements: { workflow_id: workflow.id },
-          type: sequelize.QueryTypes.UPDATE,
+          type: sequelize.QueryTypes.UPDATE
         });
 
         return { shouldEngage: true, engaged: true };
       }
 
       return { shouldEngage: false, reason: 'Conditions not met' };
+
     } catch (error) {
       logger.error('Failed to check and engage kill switch:', error);
       throw error;
@@ -225,9 +228,9 @@ class TelematicsService {
         reason,
         lat,
         lng,
-        metadata: JSON.stringify(metadata),
+        metadata: JSON.stringify(metadata)
       },
-      type: sequelize.QueryTypes.INSERT,
+      type: sequelize.QueryTypes.INSERT
     });
   }
 
@@ -248,19 +251,20 @@ class TelematicsService {
           credentials: {
             database: config.database,
             userName: config.userName,
-            sessionId: apiKey,
+            sessionId: apiKey
           },
           typeName: 'Device',
           entity: {
-            id: vehicle.telematics_device_id,
-          },
-        },
+            id: vehicle.telematics_device_id
+          }
+        }
       });
 
       logger.info(`Geotab ${action} command sent for device ${vehicle.telematics_device_id}`);
       return response.data;
+
     } catch (error) {
-      logger.error('Geotab provider error:', error);
+      logger.error(`Geotab provider error:`, error);
       throw error;
     }
   }
@@ -278,15 +282,16 @@ class TelematicsService {
 
       const response = await axios.post(url, {}, {
         headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       logger.info(`Samsara ${action} command sent for vehicle ${vehicle.telematics_device_id}`);
       return response.data;
+
     } catch (error) {
-      logger.error('Samsara provider error:', error);
+      logger.error(`Samsara provider error:`, error);
       throw error;
     }
   }
@@ -305,15 +310,16 @@ class TelematicsService {
 
       const response = await axios.post(url, {}, {
         headers: {
-          Authorization: `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')}`,
-          'Content-Type': 'application/json',
-        },
+          'Authorization': `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       logger.info(`Verizon Connect ${action} command sent for vehicle ${vehicle.telematics_device_id}`);
       return response.data;
+
     } catch (error) {
-      logger.error('Verizon Connect provider error:', error);
+      logger.error(`Verizon Connect provider error:`, error);
       throw error;
     }
   }
@@ -332,14 +338,15 @@ class TelematicsService {
       const response = await axios.post(url, {}, {
         headers: {
           'X-API-Key': apiKey,
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       });
 
       logger.info(`Fleet Complete ${action} command sent for vehicle ${vehicle.telematics_device_id}`);
       return response.data;
+
     } catch (error) {
-      logger.error('Fleet Complete provider error:', error);
+      logger.error(`Fleet Complete provider error:`, error);
       throw error;
     }
   }
@@ -356,18 +363,19 @@ class TelematicsService {
       const url = `${endpoint}/api/v1/vehicles/${vehicle.telematics_device_id}/immobilizer`;
 
       const response = await axios.put(url, {
-        action: command,
+        action: command
       }, {
         headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       logger.info(`Teletrac Navman ${action} command sent for vehicle ${vehicle.telematics_device_id}`);
       return response.data;
+
     } catch (error) {
-      logger.error('Teletrac Navman provider error:', error);
+      logger.error(`Teletrac Navman provider error:`, error);
       throw error;
     }
   }
@@ -388,17 +396,18 @@ class TelematicsService {
         method: config.method,
         url: config.endpoint.replace('{deviceId}', vehicle.telematics_device_id).replace('{action}', action),
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          ...config.headers,
+          ...config.headers
         },
-        data: config.payload || {},
+        data: config.payload || {}
       });
 
       logger.info(`Custom provider ${action} command sent for vehicle ${vehicle.telematics_device_id}`);
       return response.data;
+
     } catch (error) {
-      logger.error('Custom provider error:', error);
+      logger.error(`Custom provider error:`, error);
       throw error;
     }
   }
@@ -416,7 +425,7 @@ class TelematicsService {
       WHERE id = :vehicle_id
     `, {
       replacements: { vehicle_id: vehicleId, lat, lng },
-      type: sequelize.QueryTypes.UPDATE,
+      type: sequelize.QueryTypes.UPDATE
     });
   }
 
@@ -434,7 +443,7 @@ class TelematicsService {
       WHERE v.id = :vehicle_id
     `, {
       replacements: { vehicle_id: vehicleId },
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     return vehicles[0] || null;

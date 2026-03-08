@@ -37,7 +37,7 @@ router.post('/', [
   enforceFleetContext,
   body('report_id').notEmpty(),
   body('vehicle_id').notEmpty(),
-  body('custom_steps').optional().isArray(),
+  body('custom_steps').optional().isArray()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -46,7 +46,7 @@ router.post('/', [
     }
 
     const { report_id, vehicle_id, custom_steps } = req.body;
-    const { fleet_id } = req.user;
+    const fleet_id = req.user.fleet_id;
     const driver_id = req.user.role === 'driver' ? req.user.userId : req.body.driver_id;
 
     const workflow = await workflowService.initializeWorkflow(
@@ -54,7 +54,7 @@ router.post('/', [
       fleet_id,
       vehicle_id,
       driver_id,
-      custom_steps,
+      custom_steps
     );
 
     logger.info(`Workflow initialized for report ${report_id}`, { userId: req.user.userId });
@@ -71,7 +71,7 @@ router.put('/:reportId/steps/:stepId', [
   requirePermission('reports', 'write'),
   enforceFleetContext,
   body('completed').isBoolean(),
-  body('metadata').optional().isObject(),
+  body('metadata').optional().isObject()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -86,7 +86,7 @@ router.put('/:reportId/steps/:stepId', [
       reportId,
       stepId,
       completed,
-      metadata,
+      metadata
     );
 
     logger.info(`Workflow step ${stepId} updated for report ${reportId}`, { userId: req.user.userId });
@@ -101,7 +101,7 @@ router.put('/:reportId/steps/:stepId', [
 router.post('/:reportId/validate-photos', [
   authenticate,
   requirePermission('reports', 'write'),
-  enforceFleetContext,
+  enforceFleetContext
 ], async (req, res) => {
   try {
     const { reportId } = req.params;
@@ -122,7 +122,7 @@ router.post('/:reportId/override-request', [
   enforceFleetContext,
   body('vehicle_id').notEmpty(),
   body('reason').notEmpty().trim(),
-  body('urgency').optional().isIn(['low', 'medium', 'high', 'critical']),
+  body('urgency').optional().isIn(['low', 'medium', 'high', 'critical'])
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -138,7 +138,7 @@ router.post('/:reportId/override-request', [
       vehicle_id,
       req.user.userId,
       reason,
-      urgency,
+      urgency
     );
 
     logger.info(`Supervisor override requested for report ${reportId}`, { userId: req.user.userId });
@@ -153,10 +153,10 @@ router.post('/:reportId/override-request', [
 router.get('/override-requests/pending', [
   authenticate,
   requirePermission('override', 'read'),
-  enforceFleetContext,
+  enforceFleetContext
 ], async (req, res) => {
   try {
-    const { fleet_id } = req.user;
+    const fleet_id = req.user.fleet_id;
     const supervisor_id = req.user.role === 'fleet_admin' || req.user.role === 'fleet_manager'
       ? req.user.userId
       : null;
@@ -175,7 +175,7 @@ router.post('/override-requests/:requestId/approve', [
   authenticate,
   requirePermission('override', 'approve'),
   enforceFleetContext,
-  body('notes').optional().trim(),
+  body('notes').optional().trim()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -189,7 +189,7 @@ router.post('/override-requests/:requestId/approve', [
     const result = await workflowService.approveSupervisorOverride(
       requestId,
       req.user.userId,
-      notes,
+      notes
     );
 
     logger.info(`Supervisor override approved: ${requestId}`, { supervisorId: req.user.userId });
@@ -205,7 +205,7 @@ router.post('/override-requests/:requestId/deny', [
   authenticate,
   requirePermission('override', 'approve'),
   enforceFleetContext,
-  body('reason').notEmpty().trim(),
+  body('reason').notEmpty().trim()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -219,7 +219,7 @@ router.post('/override-requests/:requestId/deny', [
     const result = await workflowService.denySupervisorOverride(
       requestId,
       req.user.userId,
-      reason,
+      reason
     );
 
     logger.info(`Supervisor override denied: ${requestId}`, { supervisorId: req.user.userId });

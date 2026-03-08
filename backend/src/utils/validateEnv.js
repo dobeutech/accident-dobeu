@@ -32,7 +32,7 @@ function validateEnvironment() {
     DB_USER: process.env.DB_USER,
     DB_PASSWORD: process.env.DB_PASSWORD,
     JWT_SECRET: process.env.JWT_SECRET,
-    SESSION_SECRET: process.env.SESSION_SECRET,
+    SESSION_SECRET: process.env.SESSION_SECRET
   };
 
   // Check required variables
@@ -94,7 +94,7 @@ function validateEnvironment() {
   const recommended = {
     LOG_LEVEL: process.env.LOG_LEVEL,
     RATE_LIMIT_WINDOW_MS: process.env.RATE_LIMIT_WINDOW_MS,
-    RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS,
+    RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS
   };
 
   for (const [key, value] of Object.entries(recommended)) {
@@ -106,13 +106,13 @@ function validateEnvironment() {
   // Log results
   if (errors.length > 0) {
     logger.error('Environment validation failed:');
-    errors.forEach((error) => logger.error(`  - ${error}`));
+    errors.forEach(error => logger.error(`  - ${error}`));
     return false;
   }
 
   if (warnings.length > 0) {
     logger.warn('Environment validation warnings:');
-    warnings.forEach((warning) => logger.warn(`  - ${warning}`));
+    warnings.forEach(warning => logger.warn(`  - ${warning}`));
   }
 
   logger.info('Environment validation passed');
@@ -141,11 +141,11 @@ async function validateDatabase() {
       'users',
       'permissions',
       'accident_reports',
-      'fleet_form_configs',
+      'fleet_form_configs'
     ];
 
-    const existingTables = tables.map((t) => t.table_name);
-    const missingTables = requiredTables.filter((t) => !existingTables.includes(t));
+    const existingTables = tables.map(t => t.table_name);
+    const missingTables = requiredTables.filter(t => !existingTables.includes(t));
 
     if (missingTables.length > 0) {
       logger.error('Missing required database tables:', missingTables);
@@ -175,7 +175,7 @@ async function validateS3() {
     const s3 = new AWS.S3({
       region: process.env.AWS_REGION,
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     });
 
     await s3.headBucket({ Bucket: process.env.AWS_S3_BUCKET }).promise();
@@ -219,5 +219,5 @@ module.exports = {
   validateEnvironment,
   validateDatabase,
   validateS3,
-  runStartupValidation,
+  runStartupValidation
 };

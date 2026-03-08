@@ -4,7 +4,7 @@ module.exports = (io) => {
   io.on('connection', (socket) => {
     logger.info(`Socket connected: ${socket.id}`, {
       userId: socket.user?.userId,
-      fleetId: socket.fleetId,
+      fleetId: socket.fleetId
     });
 
     // Join fleet room for real-time updates
@@ -19,7 +19,7 @@ module.exports = (io) => {
       socket.to(`fleet:${socket.fleetId}`).emit('report:photo:new', {
         reportId,
         photoUrl,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       });
     });
 
@@ -30,7 +30,7 @@ module.exports = (io) => {
       socket.to(`fleet:${socket.fleetId}`).emit('report:new', {
         reportId,
         driverId: socket.user.userId,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       });
     });
 
@@ -40,7 +40,7 @@ module.exports = (io) => {
       socket.to(`fleet:${socket.fleetId}`).emit('report:status:changed', {
         reportId,
         status,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       });
     });
 

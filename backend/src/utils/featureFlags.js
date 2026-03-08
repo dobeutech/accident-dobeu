@@ -6,63 +6,63 @@ const featureFlags = {
   agentmdReview: {
     enabled: process.env.FEATURE_AGENTMD_REVIEW === 'true',
     description: 'AI-powered report review',
-    rolloutPercentage: 100,
+    rolloutPercentage: 100
   },
 
   redTeam: {
     enabled: process.env.FEATURE_RED_TEAM === 'true',
     description: 'Security red team testing',
-    rolloutPercentage: 0, // Only for admins
+    rolloutPercentage: 0 // Only for admins
   },
 
   analytics: {
     enabled: process.env.FEATURE_ANALYTICS === 'true',
     description: 'User analytics and tracking',
-    rolloutPercentage: 100,
+    rolloutPercentage: 100
   },
 
   advancedExports: {
     enabled: process.env.FEATURE_ADVANCED_EXPORTS !== 'false',
     description: 'Advanced export formats (XML, JSON)',
-    rolloutPercentage: 100,
+    rolloutPercentage: 100
   },
 
   realtimeNotifications: {
     enabled: process.env.FEATURE_REALTIME_NOTIFICATIONS !== 'false',
     description: 'Real-time WebSocket notifications',
-    rolloutPercentage: 100,
+    rolloutPercentage: 100
   },
 
   offlineMode: {
     enabled: process.env.FEATURE_OFFLINE_MODE !== 'false',
     description: 'Offline support for mobile app',
-    rolloutPercentage: 100,
+    rolloutPercentage: 100
   },
 
   customForms: {
     enabled: process.env.FEATURE_CUSTOM_FORMS !== 'false',
     description: 'Custom form builder',
-    rolloutPercentage: 100,
+    rolloutPercentage: 100
   },
 
   // Experimental features
   aiAssistant: {
     enabled: process.env.FEATURE_AI_ASSISTANT === 'true',
     description: 'AI assistant for report writing',
-    rolloutPercentage: 10,
+    rolloutPercentage: 10
   },
 
   voiceInput: {
     enabled: process.env.FEATURE_VOICE_INPUT === 'true',
     description: 'Voice-to-text input',
-    rolloutPercentage: 0,
+    rolloutPercentage: 0
   },
 
   photoAnalysis: {
     enabled: process.env.FEATURE_PHOTO_ANALYSIS === 'true',
     description: 'AI-powered photo analysis',
-    rolloutPercentage: 0,
-  },
+    rolloutPercentage: 0
+  }
 };
 
 /**
@@ -114,7 +114,7 @@ const getUserFeatures = (user = null) => {
   for (const [name, config] of Object.entries(featureFlags)) {
     features[name] = {
       enabled: isFeatureEnabled(name, user),
-      description: config.description,
+      description: config.description
     };
   }
 
@@ -124,12 +124,14 @@ const getUserFeatures = (user = null) => {
 /**
  * Get all feature flags (admin only)
  */
-const getAllFeatures = () => Object.entries(featureFlags).map(([name, config]) => ({
-  name,
-  enabled: config.enabled,
-  description: config.description,
-  rolloutPercentage: config.rolloutPercentage,
-}));
+const getAllFeatures = () => {
+  return Object.entries(featureFlags).map(([name, config]) => ({
+    name,
+    enabled: config.enabled,
+    description: config.description,
+    rolloutPercentage: config.rolloutPercentage
+  }));
+};
 
 /**
  * Update feature flag (runtime update)
@@ -155,7 +157,7 @@ const updateFeatureFlag = (featureName, updates) => {
   logger.info('Feature flag updated', {
     featureName,
     enabled: feature.enabled,
-    rolloutPercentage: feature.rolloutPercentage,
+    rolloutPercentage: feature.rolloutPercentage
   });
 
   return feature;
@@ -169,7 +171,7 @@ function hashString(str) {
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash &= hash; // Convert to 32bit integer
+    hash = hash & hash; // Convert to 32bit integer
   }
   return Math.abs(hash);
 }
@@ -177,14 +179,16 @@ function hashString(str) {
 /**
  * Middleware to check feature flag
  */
-const requireFeature = (featureName) => (req, res, next) => {
-  if (!isFeatureEnabled(featureName, req.user)) {
-    return res.status(403).json({
-      error: 'Feature not available',
-      feature: featureName,
-    });
-  }
-  next();
+const requireFeature = (featureName) => {
+  return (req, res, next) => {
+    if (!isFeatureEnabled(featureName, req.user)) {
+      return res.status(403).json({
+        error: 'Feature not available',
+        feature: featureName
+      });
+    }
+    next();
+  };
 };
 
 module.exports = {
@@ -192,5 +196,5 @@ module.exports = {
   getUserFeatures,
   getAllFeatures,
   updateFeatureFlag,
-  requireFeature,
+  requireFeature
 };

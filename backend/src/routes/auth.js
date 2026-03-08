@@ -9,7 +9,7 @@ const {
   authLimiter,
   accountLockout,
   trackFailedLogin,
-  resetFailedAttempts,
+  resetFailedAttempts
 } = require('../middleware/rateLimiting');
 
 const router = express.Router();
@@ -42,7 +42,7 @@ router.post('/logout', authenticate, (req, res) => {
   res.clearCookie('auth_token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'strict'
   });
   logger.info(`User logged out: ${req.user.email}`, { userId: req.user.userId });
   res.json({ message: 'Logged out successfully' });
@@ -116,7 +116,7 @@ router.post('/register', [
   body('first_name').trim().notEmpty(),
   body('last_name').trim().notEmpty(),
   body('role').isIn(['fleet_viewer', 'driver']),
-  body('fleet_id').optional().isUUID(),
+  body('fleet_id').optional().isUUID()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -124,16 +124,14 @@ router.post('/register', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const {
-      email, password, first_name, last_name, role, fleet_id, phone,
-    } = req.body;
+    const { email, password, first_name, last_name, role, fleet_id, phone } = req.body;
 
     // Check if user already exists
     const [existing] = await sequelize.query(`
       SELECT id FROM users WHERE email = :email
     `, {
       replacements: { email },
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     if (existing) {
@@ -149,10 +147,8 @@ router.post('/register', [
       VALUES (:email, :password_hash, :first_name, :last_name, :role, :fleet_id, :phone)
       RETURNING id, email, first_name, last_name, role, fleet_id, created_at
     `, {
-      replacements: {
-        email, password_hash, first_name, last_name, role, fleet_id, phone,
-      },
-      type: sequelize.QueryTypes.INSERT,
+      replacements: { email, password_hash, first_name, last_name, role, fleet_id, phone },
+      type: sequelize.QueryTypes.INSERT
     });
 
     const user = result[0];
@@ -166,8 +162,8 @@ router.post('/register', [
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
-        role: user.role,
-      },
+        role: user.role
+      }
     });
   } catch (error) {
     logger.error('Registration error:', error);
@@ -178,7 +174,7 @@ router.post('/register', [
 // Login
 router.post('/login', authLimiter, accountLockout, [
   body('email').isEmail().normalizeEmail(),
-  body('password').notEmpty(),
+  body('password').notEmpty()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -196,7 +192,7 @@ router.post('/login', authLimiter, accountLockout, [
       WHERE u.email = :email AND u.is_active = true
     `, {
       replacements: { email },
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     if (!users || users.length === 0) {
@@ -220,7 +216,7 @@ router.post('/login', authLimiter, accountLockout, [
     await sequelize.query(`
       UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = :id
     `, {
-      replacements: { id: user.id },
+      replacements: { id: user.id }
     });
 
     // Generate token
@@ -229,7 +225,7 @@ router.post('/login', authLimiter, accountLockout, [
       email: user.email,
       role: user.role,
       fleet_id: user.fleet_id,
-      fleet_name: user.fleet_name,
+      fleet_name: user.fleet_name
     });
 
     // Set httpOnly cookie for security
@@ -237,7 +233,7 @@ router.post('/login', authLimiter, accountLockout, [
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
     logger.info(`User logged in: ${email}`, { userId: user.id, role: user.role });
@@ -251,8 +247,8 @@ router.post('/login', authLimiter, accountLockout, [
         last_name: user.last_name,
         role: user.role,
         fleet_id: user.fleet_id,
-        fleet_name: user.fleet_name,
-      },
+        fleet_name: user.fleet_name
+      }
     });
   } catch (error) {
     logger.error('Login error:', error);
@@ -271,7 +267,7 @@ router.get('/me', authenticate, async (req, res) => {
       WHERE u.id = :id
     `, {
       replacements: { id: req.user.userId },
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     if (!users || users.length === 0) {

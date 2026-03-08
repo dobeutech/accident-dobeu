@@ -23,7 +23,7 @@ function setupQueryMonitoring(sequelize) {
         query: query.sql || query,
         duration,
         timestamp: new Date().toISOString(),
-        bind: query.bind,
+        bind: query.bind
       };
 
       slowQueries.push(slowQuery);
@@ -36,7 +36,7 @@ function setupQueryMonitoring(sequelize) {
       logger.warn('Slow query detected', {
         duration,
         query: query.sql || query,
-        threshold: SLOW_QUERY_THRESHOLD,
+        threshold: SLOW_QUERY_THRESHOLD
       });
     }
 
@@ -44,7 +44,7 @@ function setupQueryMonitoring(sequelize) {
     if (process.env.NODE_ENV === 'development' && process.env.LOG_QUERIES === 'true') {
       logger.debug('Query executed', {
         duration,
-        query: query.sql || query,
+        query: query.sql || query
       });
     }
   });
@@ -57,19 +57,19 @@ function getSlowQueryStats() {
   if (slowQueries.length === 0) {
     return {
       count: 0,
-      queries: [],
+      queries: []
     };
   }
 
   // Calculate statistics
-  const durations = slowQueries.map((q) => q.duration);
+  const durations = slowQueries.map(q => q.duration);
   const avgDuration = durations.reduce((a, b) => a + b, 0) / durations.length;
   const maxDuration = Math.max(...durations);
   const minDuration = Math.min(...durations);
 
   // Group by query pattern (simplified)
   const queryPatterns = {};
-  slowQueries.forEach((q) => {
+  slowQueries.forEach(q => {
     // Extract query type (SELECT, INSERT, UPDATE, DELETE)
     const match = q.query.match(/^(SELECT|INSERT|UPDATE|DELETE)/i);
     const type = match ? match[1].toUpperCase() : 'OTHER';
@@ -88,11 +88,11 @@ function getSlowQueryStats() {
     minDuration,
     threshold: SLOW_QUERY_THRESHOLD,
     patterns: queryPatterns,
-    recentQueries: slowQueries.slice(-10).map((q) => ({
+    recentQueries: slowQueries.slice(-10).map(q => ({
       query: q.query.substring(0, 200), // Truncate long queries
       duration: q.duration,
-      timestamp: q.timestamp,
-    })),
+      timestamp: q.timestamp
+    }))
   };
 }
 
@@ -107,7 +107,7 @@ function clearSlowQueries() {
  * Database connection pool monitoring
  */
 function getPoolStats(sequelize) {
-  const { pool } = sequelize.connectionManager;
+  const pool = sequelize.connectionManager.pool;
 
   return {
     size: pool.size,
@@ -115,7 +115,7 @@ function getPoolStats(sequelize) {
     using: pool.using,
     waiting: pool.waiting,
     maxSize: pool.max,
-    minSize: pool.min,
+    minSize: pool.min
   };
 }
 
@@ -166,15 +166,15 @@ async function getDatabaseStats(sequelize) {
       tables: tableResults,
       connections: connectionResults[0],
       cacheHitRatio: cacheResults[0].cache_hit_ratio
-        ? `${parseFloat(cacheResults[0].cache_hit_ratio).toFixed(2)}%`
+        ? parseFloat(cacheResults[0].cache_hit_ratio).toFixed(2) + '%'
         : 'N/A',
       poolStats: getPoolStats(sequelize),
-      slowQueries: getSlowQueryStats(),
+      slowQueries: getSlowQueryStats()
     };
   } catch (error) {
     logger.error('Error getting database stats:', error);
     return {
-      error: error.message,
+      error: error.message
     };
   }
 }
@@ -192,13 +192,13 @@ function startPeriodicMonitoring(sequelize, intervalMs = 60000) {
         connections: stats.connections,
         cacheHitRatio: stats.cacheHitRatio,
         poolStats: stats.poolStats,
-        slowQueryCount: stats.slowQueries.count,
+        slowQueryCount: stats.slowQueries.count
       });
 
       // Alert if cache hit ratio is low
       if (stats.cacheHitRatio && parseFloat(stats.cacheHitRatio) < 90) {
         logger.warn('Low database cache hit ratio', {
-          cacheHitRatio: stats.cacheHitRatio,
+          cacheHitRatio: stats.cacheHitRatio
         });
       }
 
@@ -206,7 +206,7 @@ function startPeriodicMonitoring(sequelize, intervalMs = 60000) {
       if (stats.poolStats.using / stats.poolStats.maxSize > 0.8) {
         logger.warn('Database connection pool nearly exhausted', {
           using: stats.poolStats.using,
-          maxSize: stats.poolStats.maxSize,
+          maxSize: stats.poolStats.maxSize
         });
       }
     } catch (error) {
@@ -221,5 +221,5 @@ module.exports = {
   clearSlowQueries,
   getPoolStats,
   getDatabaseStats,
-  startPeriodicMonitoring,
+  startPeriodicMonitoring
 };

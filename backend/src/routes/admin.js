@@ -20,7 +20,7 @@ router.get('/stats', async (req, res) => {
         (SELECT COUNT(*) FROM fleets WHERE subscription_status = 'active') as active_fleets,
         (SELECT COUNT(*) FROM accident_reports WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as reports_last_30_days
     `, {
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     res.json({ stats: stats[0] });
@@ -33,9 +33,7 @@ router.get('/stats', async (req, res) => {
 // Get all users across all fleets
 router.get('/users', async (req, res) => {
   try {
-    const {
-      page = 1, limit = 50, role, fleet_id,
-    } = req.query;
+    const { page = 1, limit = 50, role, fleet_id } = req.query;
     const offset = (page - 1) * limit;
 
     let whereClause = 'WHERE 1=1';
@@ -60,7 +58,7 @@ router.get('/users', async (req, res) => {
       LIMIT :limit OFFSET :offset
     `, {
       replacements,
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     res.json({ users });
@@ -73,9 +71,7 @@ router.get('/users', async (req, res) => {
 // Get audit logs
 router.get('/audit-logs', async (req, res) => {
   try {
-    const {
-      page = 1, limit = 100, fleet_id, user_id, start_date, end_date,
-    } = req.query;
+    const { page = 1, limit = 100, fleet_id, user_id, start_date, end_date } = req.query;
     const offset = (page - 1) * limit;
 
     let whereClause = 'WHERE 1=1';
@@ -113,7 +109,7 @@ router.get('/audit-logs', async (req, res) => {
       LIMIT :limit OFFSET :offset
     `, {
       replacements,
-      type: sequelize.QueryTypes.SELECT,
+      type: sequelize.QueryTypes.SELECT
     });
 
     res.json({ audit_logs: logs });

@@ -15,12 +15,12 @@ const apiLimiter = rateLimit({
     logger.security('Rate limit exceeded', {
       ip: req.ip,
       path: req.path,
-      method: req.method,
+      method: req.method
     });
     res.status(429).json({
-      error: 'Too many requests, please try again later.',
+      error: 'Too many requests, please try again later.'
     });
-  },
+  }
 });
 
 // Strict rate limiter for authentication endpoints
@@ -35,17 +35,17 @@ const authLimiter = rateLimit({
     logger.security('Auth rate limit exceeded', {
       ip: req.ip,
       email: req.body.email,
-      path: req.path,
+      path: req.path
     });
     res.status(429).json({
-      error: 'Too many login attempts. Please try again in 15 minutes.',
+      error: 'Too many login attempts. Please try again in 15 minutes.'
     });
-  },
+  }
 });
 
 // Account lockout after failed attempts
 const accountLockout = (req, res, next) => {
-  const { email } = req.body;
+  const email = req.body.email;
   if (!email) {
     return next();
   }
@@ -58,7 +58,7 @@ const accountLockout = (req, res, next) => {
     const remainingTime = Math.ceil((attempts.lockedUntil - Date.now()) / 1000 / 60);
     logger.security('Account locked', { email, ip: req.ip, remainingTime });
     return res.status(423).json({
-      error: `Account temporarily locked. Try again in ${remainingTime} minutes.`,
+      error: `Account temporarily locked. Try again in ${remainingTime} minutes.`
     });
   }
 
@@ -85,7 +85,7 @@ const trackFailedLogin = (email, ip) => {
     logger.security('Account locked due to failed attempts', {
       email,
       ip,
-      attempts: attempts.count,
+      attempts: attempts.count
     });
   }
 
@@ -114,7 +114,7 @@ const slowDown = rateLimit({
   max: 50,
   delayAfter: 25,
   delayMs: 500,
-  skipSuccessfulRequests: false,
+  skipSuccessfulRequests: false
 });
 
 // IP whitelist middleware
@@ -132,7 +132,7 @@ const ipWhitelist = (req, res, next) => {
   }
 
   // Check if IP is in whitelist range (basic CIDR support)
-  const isWhitelisted = whitelist.some((ip) => {
+  const isWhitelisted = whitelist.some(ip => {
     if (ip.includes('/')) {
       // CIDR notation - simplified check
       const [network] = ip.split('/');
@@ -156,5 +156,5 @@ module.exports = {
   trackFailedLogin,
   resetFailedAttempts,
   slowDown,
-  ipWhitelist,
+  ipWhitelist
 };
