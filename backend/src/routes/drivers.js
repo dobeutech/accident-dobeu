@@ -26,12 +26,12 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
     };
 
     if (status === 'active') {
-      query += ` AND u.is_active = true`;
+      query += ' AND u.is_active = true';
     } else if (status === 'inactive') {
-      query += ` AND u.is_active = false`;
+      query += ' AND u.is_active = false';
     }
 
-    query += ` ORDER BY u.created_at DESC LIMIT :limit OFFSET :offset`;
+    query += ' ORDER BY u.created_at DESC LIMIT :limit OFFSET :offset';
 
     const [drivers] = await sequelize.query(query, {
       replacements,
@@ -45,7 +45,7 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
       {
         replacements: { fleet_id: req.user.fleet_id },
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     const total = parseInt(countResult?.total || 0);
@@ -79,7 +79,7 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
       {
         replacements: { id, fleet_id: req.user.fleet_id },
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     if (!drivers || drivers.length === 0) {
@@ -112,8 +112,10 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { email, password, first_name, last_name, phone } = req.body;
-      const fleet_id = req.user.fleet_id;
+      const {
+        email, password, first_name, last_name, phone,
+      } = req.body;
+      const { fleet_id } = req.user;
 
       const [existing] = await sequelize.query(
         `
@@ -122,7 +124,7 @@ router.post(
         {
           replacements: { email, fleet_id },
           type: sequelize.QueryTypes.SELECT,
-        }
+        },
       );
 
       if (existing && existing.length > 0) {
@@ -138,9 +140,11 @@ router.post(
       RETURNING id, email, first_name, last_name, role, phone, created_at
     `,
         {
-          replacements: { email, password_hash, first_name, last_name, fleet_id, phone },
+          replacements: {
+            email, password_hash, first_name, last_name, fleet_id, phone,
+          },
           type: sequelize.QueryTypes.INSERT,
-        }
+        },
       );
 
       const driver = result[0];
@@ -155,7 +159,7 @@ router.post(
       logger.error('Create driver error:', error);
       res.status(500).json({ error: 'Failed to create driver' });
     }
-  }
+  },
 );
 
 router.put(
@@ -177,11 +181,11 @@ router.put(
       }
 
       const { id } = req.params;
-      const fleet_id = req.user.fleet_id;
+      const { fleet_id } = req.user;
 
       const updates = {};
       const allowedFields = ['first_name', 'last_name', 'phone', 'is_active'];
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (req.body[field] !== undefined) {
           updates[field] = req.body[field];
         }
@@ -194,7 +198,7 @@ router.put(
       updates.updated_at = new Date();
 
       const setClause = Object.keys(updates)
-        .map(key => `"${key}" = :${key}`)
+        .map((key) => `"${key}" = :${key}`)
         .join(', ');
       const [result] = await sequelize.query(
         `
@@ -206,7 +210,7 @@ router.put(
         {
           replacements: { id, fleet_id, ...updates },
           type: sequelize.QueryTypes.UPDATE,
-        }
+        },
       );
 
       if (!result || result.length === 0) {
@@ -219,7 +223,7 @@ router.put(
       logger.error('Update driver error:', error);
       res.status(500).json({ error: 'Failed to update driver' });
     }
-  }
+  },
 );
 
 module.exports = router;

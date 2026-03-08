@@ -23,7 +23,7 @@ router.get('/', authenticate, requireRole('super_admin'), async (req, res) => {
     `,
       {
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     res.json({ fleets });
@@ -57,7 +57,7 @@ router.get('/:id', authenticate, async (req, res) => {
       {
         replacements: { id },
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     if (!fleets || fleets.length === 0) {
@@ -90,7 +90,9 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { name, email, company_name, phone, address } = req.body;
+      const {
+        name, email, company_name, phone, address,
+      } = req.body;
 
       // Check if fleet with email already exists
       const [existing] = await sequelize.query(
@@ -100,7 +102,7 @@ router.post(
         {
           replacements: { email },
           type: sequelize.QueryTypes.SELECT,
-        }
+        },
       );
 
       if (existing && existing.length > 0) {
@@ -114,9 +116,11 @@ router.post(
       RETURNING *
     `,
         {
-          replacements: { name, email, company_name, phone, address },
+          replacements: {
+            name, email, company_name, phone, address,
+          },
           type: sequelize.QueryTypes.INSERT,
-        }
+        },
       );
 
       const fleet = result[0];
@@ -128,7 +132,7 @@ router.post(
       logger.error('Create fleet error:', error);
       res.status(500).json({ error: 'Failed to create fleet' });
     }
-  }
+  },
 );
 
 // Update fleet
@@ -168,7 +172,7 @@ router.put(
         'subscription_status',
       ];
 
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (req.body[field] !== undefined) {
           updates[field] = req.body[field];
         }
@@ -181,7 +185,7 @@ router.put(
       updates.updated_at = new Date();
 
       const setClause = Object.keys(updates)
-        .map(key => `"${key}" = :${key}`)
+        .map((key) => `"${key}" = :${key}`)
         .join(', ');
       const [result] = await sequelize.query(
         `
@@ -193,7 +197,7 @@ router.put(
         {
           replacements: { id, ...updates },
           type: sequelize.QueryTypes.UPDATE,
-        }
+        },
       );
 
       if (!result || result.length === 0) {
@@ -207,7 +211,7 @@ router.put(
       logger.error('Update fleet error:', error);
       res.status(500).json({ error: 'Failed to update fleet' });
     }
-  }
+  },
 );
 
 // Delete fleet (super admin only)
@@ -222,7 +226,7 @@ router.delete('/:id', authenticate, requireRole('super_admin'), async (req, res)
       {
         replacements: { id },
         type: sequelize.QueryTypes.DELETE,
-      }
+      },
     );
 
     if (!result || result.length === 0) {

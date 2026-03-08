@@ -22,7 +22,7 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
       {
         replacements: { fleet_id: req.user.fleet_id },
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     res.json({ users });
@@ -47,7 +47,7 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
       {
         replacements: { id, fleet_id: req.user.fleet_id },
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     if (!users || users.length === 0) {
@@ -82,8 +82,10 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { email, password, first_name, last_name, role, phone } = req.body;
-      const fleet_id = req.user.fleet_id;
+      const {
+        email, password, first_name, last_name, role, phone,
+      } = req.body;
+      const { fleet_id } = req.user;
 
       // Check if user already exists in this fleet
       const [existing] = await sequelize.query(
@@ -93,7 +95,7 @@ router.post(
         {
           replacements: { email, fleet_id },
           type: sequelize.QueryTypes.SELECT,
-        }
+        },
       );
 
       if (existing && existing.length > 0) {
@@ -111,9 +113,11 @@ router.post(
       RETURNING id, email, first_name, last_name, role, created_at
     `,
         {
-          replacements: { email, password_hash, first_name, last_name, role, fleet_id, phone },
+          replacements: {
+            email, password_hash, first_name, last_name, role, fleet_id, phone,
+          },
           type: sequelize.QueryTypes.INSERT,
-        }
+        },
       );
 
       const user = result[0];
@@ -129,7 +133,7 @@ router.post(
       logger.error('Create user error:', error);
       res.status(500).json({ error: 'Failed to create user' });
     }
-  }
+  },
 );
 
 // Update user
@@ -153,12 +157,12 @@ router.put(
       }
 
       const { id } = req.params;
-      const fleet_id = req.user.fleet_id;
+      const { fleet_id } = req.user;
 
       const updates = {};
       const allowedFields = ['first_name', 'last_name', 'role', 'phone', 'is_active'];
 
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (req.body[field] !== undefined) {
           updates[field] = req.body[field];
         }
@@ -171,7 +175,7 @@ router.put(
       updates.updated_at = new Date();
 
       const setClause = Object.keys(updates)
-        .map(key => `"${key}" = :${key}`)
+        .map((key) => `"${key}" = :${key}`)
         .join(', ');
       const [result] = await sequelize.query(
         `
@@ -183,7 +187,7 @@ router.put(
         {
           replacements: { id, fleet_id, ...updates },
           type: sequelize.QueryTypes.UPDATE,
-        }
+        },
       );
 
       if (!result || result.length === 0) {
@@ -197,7 +201,7 @@ router.put(
       logger.error('Update user error:', error);
       res.status(500).json({ error: 'Failed to update user' });
     }
-  }
+  },
 );
 
 // Delete user
@@ -209,7 +213,7 @@ router.delete(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const fleet_id = req.user.fleet_id;
+      const { fleet_id } = req.user;
 
       // Prevent self-deletion
       if (id === req.user.userId) {
@@ -223,7 +227,7 @@ router.delete(
         {
           replacements: { id, fleet_id },
           type: sequelize.QueryTypes.DELETE,
-        }
+        },
       );
 
       if (!result || result.length === 0) {
@@ -237,7 +241,7 @@ router.delete(
       logger.error('Delete user error:', error);
       res.status(500).json({ error: 'Failed to delete user' });
     }
-  }
+  },
 );
 
 module.exports = router;

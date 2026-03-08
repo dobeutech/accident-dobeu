@@ -29,12 +29,12 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
     };
 
     if (status === 'active') {
-      query += ` AND v.is_active = true`;
+      query += ' AND v.is_active = true';
     } else if (status === 'inactive') {
-      query += ` AND v.is_active = false`;
+      query += ' AND v.is_active = false';
     }
 
-    query += ` ORDER BY v.created_at DESC LIMIT :limit OFFSET :offset`;
+    query += ' ORDER BY v.created_at DESC LIMIT :limit OFFSET :offset';
 
     const [vehicles] = await sequelize.query(query, {
       replacements,
@@ -48,7 +48,7 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
       {
         replacements: { fleet_id: req.user.fleet_id },
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     const total = parseInt(countResult?.total || 0);
@@ -82,7 +82,7 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
       {
         replacements: { id, fleet_id: req.user.fleet_id },
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     if (!vehicles || vehicles.length === 0) {
@@ -116,8 +116,10 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { vehicle_number, make, model, year, vin, license_plate } = req.body;
-      const fleet_id = req.user.fleet_id;
+      const {
+        vehicle_number, make, model, year, vin, license_plate,
+      } = req.body;
+      const { fleet_id } = req.user;
 
       const [existing] = await sequelize.query(
         `
@@ -126,7 +128,7 @@ router.post(
         {
           replacements: { vehicle_number, fleet_id },
           type: sequelize.QueryTypes.SELECT,
-        }
+        },
       );
 
       if (existing && existing.length > 0) {
@@ -150,7 +152,7 @@ router.post(
             license_plate: license_plate || null,
           },
           type: sequelize.QueryTypes.INSERT,
-        }
+        },
       );
 
       const vehicle = result[0];
@@ -165,7 +167,7 @@ router.post(
       logger.error('Create vehicle error:', error);
       res.status(500).json({ error: 'Failed to create vehicle' });
     }
-  }
+  },
 );
 
 router.put(
@@ -191,7 +193,7 @@ router.put(
       }
 
       const { id } = req.params;
-      const fleet_id = req.user.fleet_id;
+      const { fleet_id } = req.user;
 
       const updates = {};
       const allowedFields = [
@@ -204,7 +206,7 @@ router.put(
         'is_active',
         'current_driver_id',
       ];
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (req.body[field] !== undefined) {
           updates[field] = req.body[field];
         }
@@ -217,7 +219,7 @@ router.put(
       updates.updated_at = new Date();
 
       const setClause = Object.keys(updates)
-        .map(key => `"${key}" = :${key}`)
+        .map((key) => `"${key}" = :${key}`)
         .join(', ');
       const [result] = await sequelize.query(
         `
@@ -229,7 +231,7 @@ router.put(
         {
           replacements: { id, fleet_id, ...updates },
           type: sequelize.QueryTypes.UPDATE,
-        }
+        },
       );
 
       if (!result || result.length === 0) {
@@ -242,7 +244,7 @@ router.put(
       logger.error('Update vehicle error:', error);
       res.status(500).json({ error: 'Failed to update vehicle' });
     }
-  }
+  },
 );
 
 module.exports = router;

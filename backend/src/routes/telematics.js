@@ -49,7 +49,7 @@ const router = express.Router();
  */
 router.get('/vehicles', authenticate, enforceFleetContext, async (req, res) => {
   try {
-    const fleet_id = req.user.fleet_id;
+    const { fleet_id } = req.user;
     const { status, kill_switch_enabled } = req.query;
 
     let whereClause = 'WHERE v.fleet_id = :fleet_id';
@@ -79,7 +79,7 @@ router.get('/vehicles', authenticate, enforceFleetContext, async (req, res) => {
       {
         replacements,
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     res.json({ vehicles });
@@ -125,7 +125,7 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const fleet_id = req.user.fleet_id;
+      const { fleet_id } = req.user;
       const {
         vehicle_number,
         vin,
@@ -164,7 +164,7 @@ router.post(
             metadata: JSON.stringify(metadata || {}),
           },
           type: sequelize.QueryTypes.INSERT,
-        }
+        },
       );
 
       logger.info(`Vehicle created: ${vehicle_number}`, {
@@ -176,7 +176,7 @@ router.post(
       logger.error('Create vehicle error:', error);
       res.status(500).json({ error: 'Failed to create vehicle' });
     }
-  }
+  },
 );
 
 // Update vehicle
@@ -186,7 +186,7 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const fleet_id = req.user.fleet_id;
+      const { fleet_id } = req.user;
 
       const updates = {};
       const allowedFields = [
@@ -204,7 +204,7 @@ router.put(
         'metadata',
       ];
 
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (req.body[field] !== undefined) {
           if (field === 'metadata') {
             updates[field] = JSON.stringify(req.body[field]);
@@ -221,7 +221,7 @@ router.put(
       updates.updated_at = new Date();
 
       const setClause = Object.keys(updates)
-        .map(key => `"${key}" = :${key}`)
+        .map((key) => `"${key}" = :${key}`)
         .join(', ');
       const [result] = await sequelize.query(
         `
@@ -233,7 +233,7 @@ router.put(
         {
           replacements: { id, fleet_id, ...updates },
           type: sequelize.QueryTypes.UPDATE,
-        }
+        },
       );
 
       if (!result || result.length === 0) {
@@ -246,7 +246,7 @@ router.put(
       logger.error('Update vehicle error:', error);
       res.status(500).json({ error: 'Failed to update vehicle' });
     }
-  }
+  },
 );
 
 // Engage kill switch
@@ -273,7 +273,7 @@ router.post(
         id,
         report_id,
         req.user.userId,
-        reason
+        reason,
       );
 
       logger.info(`Kill switch engaged for vehicle ${id}`, { userId: req.user.userId });
@@ -282,7 +282,7 @@ router.post(
       logger.error('Engage kill switch error:', error);
       res.status(500).json({ error: error.message || 'Failed to engage kill switch' });
     }
-  }
+  },
 );
 
 // Disengage kill switch
@@ -309,7 +309,7 @@ router.post(
         id,
         report_id,
         req.user.userId,
-        reason
+        reason,
       );
 
       logger.info(`Kill switch disengaged for vehicle ${id}`, { userId: req.user.userId });
@@ -318,7 +318,7 @@ router.post(
       logger.error('Disengage kill switch error:', error);
       res.status(500).json({ error: error.message || 'Failed to disengage kill switch' });
     }
-  }
+  },
 );
 
 // Get kill switch events
@@ -348,7 +348,7 @@ router.get(
         {
           replacements: { vehicle_id: id, limit: parseInt(limit) },
           type: sequelize.QueryTypes.SELECT,
-        }
+        },
       );
 
       res.json({ events });
@@ -356,13 +356,13 @@ router.get(
       logger.error('Get kill switch events error:', error);
       res.status(500).json({ error: 'Failed to fetch kill switch events' });
     }
-  }
+  },
 );
 
 // Get telematics providers
 router.get('/providers', authenticate, enforceFleetContext, async (req, res) => {
   try {
-    const fleet_id = req.user.fleet_id;
+    const { fleet_id } = req.user;
 
     const [providers] = await sequelize.query(
       `
@@ -374,7 +374,7 @@ router.get('/providers', authenticate, enforceFleetContext, async (req, res) => 
       {
         replacements: { fleet_id },
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
 
     res.json({ providers });
@@ -409,8 +409,10 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const fleet_id = req.user.fleet_id;
-      const { provider_name, api_key, api_secret, api_endpoint, additional_config } = req.body;
+      const { fleet_id } = req.user;
+      const {
+        provider_name, api_key, api_secret, api_endpoint, additional_config,
+      } = req.body;
 
       // Encrypt API credentials
       const api_key_encrypted = telematicsService.encrypt(api_key);
@@ -434,7 +436,7 @@ router.post(
             additional_config: JSON.stringify(additional_config || {}),
           },
           type: sequelize.QueryTypes.INSERT,
-        }
+        },
       );
 
       logger.info(`Telematics provider created: ${provider_name}`, { fleetId: fleet_id });
@@ -443,7 +445,7 @@ router.post(
       logger.error('Create telematics provider error:', error);
       res.status(500).json({ error: 'Failed to create telematics provider' });
     }
-  }
+  },
 );
 
 module.exports = router;
