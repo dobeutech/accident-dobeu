@@ -1,3 +1,11 @@
+jest.mock('../database/connection', () => ({
+  sequelize: {
+    authenticate: jest.fn().mockResolvedValue(true),
+    query: jest.fn().mockResolvedValue([]),
+    close: jest.fn().mockResolvedValue(true),
+  },
+}));
+
 const request = require('supertest');
 const { app } = require('../server');
 

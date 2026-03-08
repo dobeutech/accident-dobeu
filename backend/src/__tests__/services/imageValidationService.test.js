@@ -64,6 +64,10 @@ describe('ImageValidationService', () => {
     imageValidationService.rekognition = mockRekognition;
     imageValidationService.s3 = mockS3;
 
+    // Re-assign explicitly because service may have been instantiated before mock setup
+    imageValidationService.rekognition = mockRekognition;
+    imageValidationService.s3 = mockS3;
+
     // Mock sequelize
     sequelize.query = jest.fn();
   });
