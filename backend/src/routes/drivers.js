@@ -166,7 +166,7 @@ router.put('/:id', [
 
     updates.updated_at = new Date();
 
-    const setClause = Object.keys(updates).map(key => `${key} = :${key}`).join(', ');
+    const setClause = Object.keys(updates).map(key => `"${key}" = :${key}`).join(', ');
     const [result] = await sequelize.query(`
       UPDATE users
       SET ${setClause}
