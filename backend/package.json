@@ -60,7 +60,7 @@
     "eslint": "^9.39.2",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-formatter-stylish": "^9.0.1",
-    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-import": "^2.32.0",
     "husky": "^8.0.3",
     "jest": "^30.2.0",
     "lint-staged": "^16.3.1",

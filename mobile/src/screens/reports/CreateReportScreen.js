@@ -99,6 +99,8 @@ export default function CreateReportScreen({ navigation }) {
       // Save locally
       await reportStorage.save(report);
 
+      let isQueued = false;
+
       // Try to sync if online
       if (isOnline) {
         try {
@@ -107,13 +109,20 @@ export default function CreateReportScreen({ navigation }) {
         } catch (error) {
           // Queue for sync if it fails
           await queueForSync('report', reportId, 'create', report);
+          isQueued = true;
         }
       } else {
         // Queue for offline sync
         await queueForSync('report', reportId, 'create', report);
+        isQueued = true;
       }
 
-      Alert.alert('Success', 'Report created successfully', [
+      const alertTitle = isQueued ? 'Report Saved' : 'Success';
+      const alertMessage = isQueued
+        ? 'Report saved offline and queued for sync'
+        : 'Report created successfully';
+
+      Alert.alert(alertTitle, alertMessage, [
         { text: 'OK', onPress: () => navigation.navigate('Reports') }
       ]);
     } catch (error) {

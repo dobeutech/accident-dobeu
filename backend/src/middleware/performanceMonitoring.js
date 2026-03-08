@@ -7,7 +7,7 @@ const requestMetrics = {
   failedRequests: 0,
   totalResponseTime: 0,
   slowRequests: 0,
-  endpoints: new Map()
+  endpoints: new Map(),
 };
 
 // Performance monitoring middleware
@@ -20,12 +20,12 @@ const performanceMonitoring = (req, res, next) => {
 
   // Capture response
   const originalSend = res.send;
-  res.send = function(data) {
+  res.send = function (data) {
     const duration = Date.now() - startTime;
-    
+
     // Update metrics
     requestMetrics.totalResponseTime += duration;
-    
+
     if (res.statusCode >= 200 && res.statusCode < 400) {
       requestMetrics.successfulRequests++;
     } else {
@@ -40,7 +40,7 @@ const performanceMonitoring = (req, res, next) => {
         duration,
         statusCode: res.statusCode,
         method: req.method,
-        path: req.path
+        path: req.path,
       });
     }
 
@@ -50,7 +50,7 @@ const performanceMonitoring = (req, res, next) => {
         count: 0,
         totalTime: 0,
         errors: 0,
-        slowCount: 0
+        slowCount: 0,
       });
     }
 
@@ -66,7 +66,7 @@ const performanceMonitoring = (req, res, next) => {
       statusCode: res.statusCode,
       method: req.method,
       path: req.path,
-      ip: req.ip
+      ip: req.ip,
     });
 
     originalSend.call(this, data);
@@ -90,7 +90,7 @@ const getMetrics = () => {
     count: stats.count,
     avgTime: stats.count > 0 ? stats.totalTime / stats.count : 0,
     errorRate: stats.count > 0 ? (stats.errors / stats.count) * 100 : 0,
-    slowRate: stats.count > 0 ? (stats.slowCount / stats.count) * 100 : 0
+    slowRate: stats.count > 0 ? (stats.slowCount / stats.count) * 100 : 0,
   })).sort((a, b) => b.count - a.count);
 
   return {
@@ -98,15 +98,15 @@ const getMetrics = () => {
       totalRequests: requestMetrics.totalRequests,
       successfulRequests: requestMetrics.successfulRequests,
       failedRequests: requestMetrics.failedRequests,
-      successRate: successRate.toFixed(2) + '%',
-      avgResponseTime: avgResponseTime.toFixed(2) + 'ms',
+      successRate: `${successRate.toFixed(2)}%`,
+      avgResponseTime: `${avgResponseTime.toFixed(2)}ms`,
       slowRequests: requestMetrics.slowRequests,
       slowRequestRate: requestMetrics.totalRequests > 0
-        ? ((requestMetrics.slowRequests / requestMetrics.totalRequests) * 100).toFixed(2) + '%'
-        : '0%'
+        ? `${((requestMetrics.slowRequests / requestMetrics.totalRequests) * 100).toFixed(2)}%`
+        : '0%',
     },
     endpoints: endpointStats.slice(0, 20), // Top 20 endpoints
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 };
 
@@ -125,12 +125,12 @@ if (process.env.NODE_ENV === 'production') {
   setInterval(() => {
     const metrics = getMetrics();
     logger.info('Performance metrics', metrics.summary);
-    
+
     // Log top 5 slowest endpoints
     const slowest = metrics.endpoints
       .sort((a, b) => b.avgTime - a.avgTime)
       .slice(0, 5);
-    
+
     if (slowest.length > 0) {
       logger.info('Slowest endpoints', slowest);
     }
@@ -140,5 +140,5 @@ if (process.env.NODE_ENV === 'production') {
 module.exports = {
   performanceMonitoring,
   getMetrics,
-  resetMetrics
+  resetMetrics,
 };
