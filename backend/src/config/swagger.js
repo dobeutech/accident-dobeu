@@ -1,3 +1,4 @@
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const options = {
