@@ -6,24 +6,24 @@ const logger = require('../utils/logger');
  */
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
-  
+
   if (!errors.isEmpty()) {
-    const errorDetails = errors.array().map(err => ({
+    const errorDetails = errors.array().map((err) => ({
       field: err.param,
       message: err.msg,
-      value: err.value
+      value: err.value,
     }));
 
     logger.warn('Validation failed', {
       path: req.path,
       method: req.method,
       errors: errorDetails,
-      ip: req.ip
+      ip: req.ip,
     });
 
     return res.status(400).json({
       error: 'Validation failed',
-      details: errorDetails
+      details: errorDetails,
     });
   }
 
@@ -36,21 +36,21 @@ const handleValidationErrors = (req, res, next) => {
 const validateBodySize = (maxSize = 10 * 1024 * 1024) => {
   return (req, res, next) => {
     const contentLength = parseInt(req.get('content-length') || '0');
-    
+
     if (contentLength > maxSize) {
       logger.security('Request body too large', {
         path: req.path,
         contentLength,
         maxSize,
-        ip: req.ip
+        ip: req.ip,
       });
-      
+
       return res.status(413).json({
         error: 'Request body too large',
-        maxSize: `${maxSize / 1024 / 1024}MB`
+        maxSize: `${maxSize / 1024 / 1024}MB`,
       });
     }
-    
+
     next();
   };
 };
@@ -66,28 +66,26 @@ const validateContentType = (allowedTypes = ['application/json']) => {
     }
 
     const contentType = req.get('content-type');
-    
+
     if (!contentType) {
       return res.status(400).json({
-        error: 'Content-Type header required'
+        error: 'Content-Type header required',
       });
     }
 
-    const isAllowed = allowedTypes.some(type => 
-      contentType.toLowerCase().includes(type.toLowerCase())
-    );
+    const isAllowed = allowedTypes.some((type) => contentType.toLowerCase().includes(type.toLowerCase()));
 
     if (!isAllowed) {
       logger.security('Invalid content type', {
         path: req.path,
         contentType,
         allowedTypes,
-        ip: req.ip
+        ip: req.ip,
       });
 
       return res.status(415).json({
         error: 'Unsupported Media Type',
-        allowedTypes
+        allowedTypes,
       });
     }
 
@@ -135,7 +133,7 @@ const validateUUID = (paramName) => {
     if (!uuidRegex.test(value)) {
       return res.status(400).json({
         error: 'Invalid UUID format',
-        parameter: paramName
+        parameter: paramName,
       });
     }
 
@@ -152,13 +150,13 @@ const validatePagination = (req, res, next) => {
 
   if (page < 1) {
     return res.status(400).json({
-      error: 'Page must be greater than 0'
+      error: 'Page must be greater than 0',
     });
   }
 
   if (limit < 1 || limit > 200) {
     return res.status(400).json({
-      error: 'Limit must be between 1 and 200'
+      error: 'Limit must be between 1 and 200',
     });
   }
 
@@ -174,19 +172,19 @@ const validateDateRange = (req, res, next) => {
 
   if (startDate && isNaN(Date.parse(startDate))) {
     return res.status(400).json({
-      error: 'Invalid startDate format. Use ISO 8601 format.'
+      error: 'Invalid startDate format. Use ISO 8601 format.',
     });
   }
 
   if (endDate && isNaN(Date.parse(endDate))) {
     return res.status(400).json({
-      error: 'Invalid endDate format. Use ISO 8601 format.'
+      error: 'Invalid endDate format. Use ISO 8601 format.',
     });
   }
 
   if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
     return res.status(400).json({
-      error: 'startDate must be before endDate'
+      error: 'startDate must be before endDate',
     });
   }
 
@@ -199,7 +197,7 @@ const validateDateRange = (req, res, next) => {
 const validateResponse = (req, res, next) => {
   const originalJson = res.json;
 
-  res.json = function(data) {
+  res.json = function (data) {
     // Ensure response has consistent structure
     if (data && typeof data === 'object' && !Array.isArray(data)) {
       // Add metadata if not present
@@ -219,7 +217,7 @@ const validateResponse = (req, res, next) => {
         delete sanitized.password;
         delete sanitized.secret;
         delete sanitized.token;
-        
+
         for (const key in sanitized) {
           sanitized[key] = sanitizeResponse(sanitized[key]);
         }
@@ -243,5 +241,5 @@ module.exports = {
   validateUUID,
   validatePagination,
   validateDateRange,
-  validateResponse
+  validateResponse,
 };

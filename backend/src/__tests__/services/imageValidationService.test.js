@@ -60,6 +60,14 @@ describe('ImageValidationService', () => {
     AWS.Rekognition.mockImplementation(() => mockRekognition);
     AWS.S3.mockImplementation(() => mockS3);
 
+    // Re-assign explicitly because service may have been instantiated before mock setup
+    imageValidationService.rekognition = mockRekognition;
+    imageValidationService.s3 = mockS3;
+
+    // Re-assign explicitly because service may have been instantiated before mock setup
+    imageValidationService.rekognition = mockRekognition;
+    imageValidationService.s3 = mockS3;
+
     // Mock sequelize
     sequelize.query = jest.fn();
   });
@@ -193,17 +201,17 @@ describe('ImageValidationService', () => {
         { id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg' },
       ];
 
-      sequelize.query
-        .mockResolvedValueOnce([[{ id: 'validation-1' }]])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([[{ id: 'validation-2' }]])
-        .mockResolvedValueOnce([]);
+      jest.spyOn(imageValidationService, 'validateImage')
+        .mockResolvedValueOnce({ validationId: 'validation-1', status: 'valid' })
+        .mockResolvedValueOnce({ validationId: 'validation-2', status: 'valid' });
 
       const results = await imageValidationService.batchValidateImages(photos);
 
       expect(results).toHaveLength(2);
       expect(results[0].success).toBe(true);
       expect(results[1].success).toBe(true);
+
+      imageValidationService.validateImage.mockRestore();
     });
 
     it('should handle partial failures in batch validation', async () => {
@@ -212,9 +220,8 @@ describe('ImageValidationService', () => {
         { id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg' },
       ];
 
-      sequelize.query
-        .mockResolvedValueOnce([[{ id: 'validation-1' }]])
-        .mockResolvedValueOnce([])
+      jest.spyOn(imageValidationService, 'validateImage')
+        .mockResolvedValueOnce({ validationId: 'validation-1', status: 'valid' })
         .mockRejectedValueOnce(new Error('Validation failed'));
 
       const results = await imageValidationService.batchValidateImages(photos);
@@ -223,6 +230,8 @@ describe('ImageValidationService', () => {
       expect(results[0].success).toBe(true);
       expect(results[1].success).toBe(false);
       expect(results[1].error).toBe('Validation failed');
+
+      imageValidationService.validateImage.mockRestore();
     });
   });
 

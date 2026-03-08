@@ -26,7 +26,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: telematicsService.encrypt('test_api_key'),
         last_location_lat: 40.7128,
         last_location_lng: -74.0060,
       };
@@ -70,12 +70,8 @@ describe('TelematicsService', () => {
       const reportId = 'report-uuid';
       const userId = 'user-uuid';
 
-      const mockVehicle = {
-        id: vehicleId,
-        kill_switch_enabled: false,
-      };
-
-      sequelize.query.mockResolvedValueOnce([[mockVehicle]]);
+      // Simulate DB returning empty array because kill_switch_enabled = true is in the WHERE clause
+      sequelize.query.mockResolvedValueOnce([[]]);
 
       await expect(
         telematicsService.engageKillSwitch(vehicleId, reportId, userId)
@@ -96,7 +92,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: telematicsService.encrypt('test_api_key'),
         last_location_lat: 40.7128,
         last_location_lng: -74.0060,
       };
@@ -140,7 +136,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: telematicsService.encrypt('test_api_key'),
       };
 
       sequelize.query

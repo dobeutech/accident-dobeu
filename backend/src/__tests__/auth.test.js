@@ -1,3 +1,11 @@
+jest.mock('../database/connection', () => ({
+  sequelize: {
+    authenticate: jest.fn().mockResolvedValue(true),
+    query: jest.fn().mockResolvedValue([]),
+    close: jest.fn().mockResolvedValue(true),
+  },
+}));
+
 const request = require('supertest');
 const { app } = require('../server');
 const { sequelize } = require('../database/connection');
@@ -27,7 +35,7 @@ describe('Authentication Endpoints', () => {
         .post('/api/auth/login')
         .send({
           email: 'invalid-email',
-          password: 'password123'
+          password: 'password123',
         })
         .expect(400);
 
@@ -38,7 +46,7 @@ describe('Authentication Endpoints', () => {
       const response = await request(app)
         .post('/api/auth/login')
         .send({
-          email: 'test@example.com'
+          email: 'test@example.com',
         })
         .expect(400);
 
@@ -50,7 +58,7 @@ describe('Authentication Endpoints', () => {
         .post('/api/auth/login')
         .send({
           email: 'nonexistent@example.com',
-          password: 'wrongpassword'
+          password: 'wrongpassword',
         })
         .expect(401);
 
@@ -60,7 +68,7 @@ describe('Authentication Endpoints', () => {
     it('should enforce rate limiting after multiple failed attempts', async () => {
       const credentials = {
         email: 'test@example.com',
-        password: 'wrongpassword'
+        password: 'wrongpassword',
       };
 
       // Make 6 failed attempts (limit is 5)
