@@ -20,9 +20,11 @@ jest.mock('../utils/logger', () => ({
 }));
 
 // Global test utilities
+const jwt = require('jsonwebtoken');
+
 global.testUtils = {
   generateMockToken: () => {
-    const jwt = require('jsonwebtoken');
+
     return jwt.sign(
       {
         userId: 'test-user-id',
@@ -31,7 +33,7 @@ global.testUtils = {
         fleet_id: 'test-fleet-id',
       },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '1h' },
     );
   },
 };

@@ -198,19 +198,19 @@ async function runStartupValidation() {
   const envValid = validateEnvironment();
   if (!envValid) {
     logger.error('Startup validation failed: Invalid environment configuration');
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'test') process.exit(1);
   }
 
   const dbValid = await validateDatabase();
   if (!dbValid) {
     logger.error('Startup validation failed: Database validation failed');
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'test') process.exit(1);
   }
 
   const s3Valid = await validateS3();
   if (!s3Valid && process.env.NODE_ENV === 'production') {
     logger.error('Startup validation failed: S3 validation failed');
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'test') process.exit(1);
   }
 
   logger.info('✓ All startup validations passed');

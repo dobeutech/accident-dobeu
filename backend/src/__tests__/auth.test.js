@@ -61,9 +61,11 @@ describe('Authentication Endpoints', () => {
       };
 
       // Make 6 failed attempts (limit is 5)
-      for (let i = 0; i < 6; i++) {
-        await request(app).post('/api/auth/login').send(credentials);
-      }
+      await Promise.all(
+        Array(6)
+          .fill(0)
+          .map(() => request(app).post('/api/auth/login').send(credentials)),
+      );
 
       // 7th attempt should be rate limited
       const response = await request(app).post('/api/auth/login').send(credentials).expect(429);

@@ -7,15 +7,15 @@ module.exports = {
 
   database: {
     host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT) || 5432,
+    port: parseInt(process.env.DB_PORT, 10) || 5432,
     database: process.env.DB_NAME,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     pool: {
-      min: parseInt(process.env.DB_POOL_MIN) || 2,
-      max: parseInt(process.env.DB_POOL_MAX) || 10,
-      idle: parseInt(process.env.DB_IDLE_TIMEOUT) || 10000,
-      acquire: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 2000,
+      min: parseInt(process.env.DB_POOL_MIN, 10) || 2,
+      max: parseInt(process.env.DB_POOL_MAX, 10) || 10,
+      idle: parseInt(process.env.DB_IDLE_TIMEOUT, 10) || 10000,
+      acquire: parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) || 2000,
     },
     dialectOptions: {
       ssl: {
@@ -37,8 +37,8 @@ module.exports = {
   },
 
   rateLimit: {
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
     standardHeaders: true,
     legacyHeaders: false,
     message: 'Too many requests from this IP, please try again later.',
@@ -75,13 +75,13 @@ module.exports = {
   },
 
   security: {
-    bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS) || 12,
-    maxLoginAttempts: parseInt(process.env.MAX_LOGIN_ATTEMPTS) || 5,
-    lockoutDuration: parseInt(process.env.LOCKOUT_DURATION) || 15 * 60 * 1000,
+    bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS, 10) || 12,
+    maxLoginAttempts: parseInt(process.env.MAX_LOGIN_ATTEMPTS, 10) || 5,
+    lockoutDuration: parseInt(process.env.LOCKOUT_DURATION, 10) || 15 * 60 * 1000,
   },
 
   upload: {
-    maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024,
+    maxFileSize: parseInt(process.env.MAX_FILE_SIZE, 10) || 10 * 1024 * 1024,
     allowedTypes: process.env.ALLOWED_FILE_TYPES?.split(',') || [
       'image/jpeg',
       'image/png',
@@ -91,8 +91,8 @@ module.exports = {
   },
 
   socket: {
-    pingTimeout: parseInt(process.env.SOCKET_PING_TIMEOUT) || 60000,
-    pingInterval: parseInt(process.env.SOCKET_PING_INTERVAL) || 25000,
+    pingTimeout: parseInt(process.env.SOCKET_PING_TIMEOUT, 10) || 60000,
+    pingInterval: parseInt(process.env.SOCKET_PING_INTERVAL, 10) || 25000,
   },
 
   features: {
