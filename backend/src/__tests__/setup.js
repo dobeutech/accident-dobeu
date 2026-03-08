@@ -3,8 +3,10 @@ require('dotenv').config({ path: '.env.test' });
 
 // Set test environment
 process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'test-jwt-secret-key-minimum-32-characters-long';
-process.env.SESSION_SECRET = 'test-session-secret-key-minimum-32-characters-long';
+const crypto = require('crypto');
+
+process.env.JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+process.env.SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 
 // Increase timeout for database operations
 jest.setTimeout(10000);
