@@ -20,7 +20,7 @@ const performanceMonitoring = (req, res, next) => {
 
   // Capture response
   const originalSend = res.send;
-  res.send = function(data) {
+  res.send = function customSend(data) {
     const duration = Date.now() - startTime;
 
     // Update metrics
