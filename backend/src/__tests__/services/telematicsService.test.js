@@ -26,7 +26,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: 'b46f4c88373a3c41f8ca4e3cb34c6bd4:a70d3da182111c5ff6f70c522dfff4d0',
         last_location_lat: 40.7128,
         last_location_lng: -74.0060,
       };
@@ -73,9 +73,11 @@ describe('TelematicsService', () => {
       const mockVehicle = {
         id: vehicleId,
         kill_switch_enabled: false,
+        api_key_encrypted: 'b46f4c88373a3c41f8ca4e3cb34c6bd4:a70d3da182111c5ff6f70c522dfff4d0',
+
       };
 
-      sequelize.query.mockResolvedValueOnce([[mockVehicle]]);
+      sequelize.query.mockResolvedValueOnce([[]]);
 
       await expect(
         telematicsService.engageKillSwitch(vehicleId, reportId, userId)
@@ -96,7 +98,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: 'b46f4c88373a3c41f8ca4e3cb34c6bd4:a70d3da182111c5ff6f70c522dfff4d0',
         last_location_lat: 40.7128,
         last_location_lng: -74.0060,
       };
@@ -140,7 +142,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: 'b46f4c88373a3c41f8ca4e3cb34c6bd4:a70d3da182111c5ff6f70c522dfff4d0',
       };
 
       sequelize.query
@@ -234,7 +236,7 @@ describe('TelematicsService', () => {
       const lat = 40.7128;
       const lng = -74.0060;
 
-      sequelize.query.mockResolvedValueOnce([]);
+      sequelize.query.mockResolvedValueOnce([[]]);
 
       await telematicsService.updateVehicleLocation(vehicleId, lat, lng);
 
@@ -306,15 +308,17 @@ describe('TelematicsService', () => {
   describe('logKillSwitchEvent', () => {
     it('should log kill switch event', async () => {
       const vehicleId = 'vehicle-uuid';
-      const fleetId = 'fleet-uuid';
       const reportId = 'report-uuid';
-      const eventType = 'engaged';
       const userId = 'user-uuid';
-      const reason = 'Test reason';
+      const action = 'engage';
+      const reason = 'test reason';
+      const fleetId = 'fleet-uuid';
+      const eventType = 'engage';
+      const status = 'success';
       const lat = 40.7128;
       const lng = -74.0060;
 
-      sequelize.query.mockResolvedValueOnce([]);
+      sequelize.query.mockResolvedValueOnce([[]]);
 
       await telematicsService.logKillSwitchEvent(
         vehicleId,
