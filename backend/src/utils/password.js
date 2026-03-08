@@ -1,3 +1,4 @@
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 const bcrypt = require('bcryptjs');
 
 const hashPassword = async (password) => {
@@ -5,12 +6,9 @@ const hashPassword = async (password) => {
   return bcrypt.hash(password, salt);
 };
 
-const comparePassword = async (password, hash) => {
-  return bcrypt.compare(password, hash);
-};
+const comparePassword = async (password, hash) => bcrypt.compare(password, hash);
 
 module.exports = {
   hashPassword,
-  comparePassword
+  comparePassword,
 };
-

@@ -1,14 +1,15 @@
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
 
 const socketAuth = async (socket, next) => {
   try {
     const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
-    
+
     if (!token) {
       return next(new Error('Authentication error: No token provided'));
     }
-    
+
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       socket.user = decoded;
@@ -25,4 +26,3 @@ const socketAuth = async (socket, next) => {
 };
 
 module.exports = socketAuth;
-

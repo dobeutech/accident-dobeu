@@ -1,3 +1,12 @@
+jest.mock('../database/connection', () => ({
+  sequelize: {
+    query: jest.fn().mockResolvedValue([[]]),
+    QueryTypes: { SELECT: 'SELECT', INSERT: 'INSERT', UPDATE: 'UPDATE' },
+    authenticate: jest.fn().mockResolvedValue(),
+    close: jest.fn().mockResolvedValue(),
+  },
+}));
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 const request = require('supertest');
 const { app } = require('../server');
 

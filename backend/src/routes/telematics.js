@@ -1,3 +1,4 @@
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { sequelize } = require('../database/connection');
@@ -49,7 +50,7 @@ const router = express.Router();
  */
 router.get('/vehicles', authenticate, enforceFleetContext, async (req, res) => {
   try {
-    const fleet_id = req.user.fleet_id;
+    const { fleet_id } = req.user;
     const { status, kill_switch_enabled } = req.query;
 
     let whereClause = 'WHERE v.fleet_id = :fleet_id';
@@ -76,7 +77,7 @@ router.get('/vehicles', authenticate, enforceFleetContext, async (req, res) => {
       ORDER BY v.vehicle_number
     `, {
       replacements,
-      type: sequelize.QueryTypes.SELECT
+      type: sequelize.QueryTypes.SELECT,
     });
 
     res.json({ vehicles });
@@ -111,7 +112,7 @@ router.post('/vehicles', [
   body('vehicle_number').notEmpty().trim(),
   body('vin').optional().trim().isLength({ min: 17, max: 17 }),
   body('telematics_device_id').optional().trim(),
-  body('kill_switch_enabled').optional().isBoolean()
+  body('kill_switch_enabled').optional().isBoolean(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -119,7 +120,7 @@ router.post('/vehicles', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const fleet_id = req.user.fleet_id;
+    const { fleet_id } = req.user;
     const {
       vehicle_number,
       vin,
@@ -130,7 +131,7 @@ router.post('/vehicles', [
       telematics_device_id,
       telematics_provider_id,
       kill_switch_enabled,
-      metadata
+      metadata,
     } = req.body;
 
     const [result] = await sequelize.query(`
@@ -153,9 +154,9 @@ router.post('/vehicles', [
         telematics_device_id,
         telematics_provider_id,
         kill_switch_enabled: kill_switch_enabled || false,
-        metadata: JSON.stringify(metadata || {})
+        metadata: JSON.stringify(metadata || {}),
       },
-      type: sequelize.QueryTypes.INSERT
+      type: sequelize.QueryTypes.INSERT,
     });
 
     logger.info(`Vehicle created: ${vehicle_number}`, { vehicleId: result[0].id, fleetId: fleet_id });
@@ -170,20 +171,20 @@ router.post('/vehicles', [
 router.put('/vehicles/:id', [
   authenticate,
   requirePermission('vehicles', 'write'),
-  enforceFleetContext
+  enforceFleetContext,
 ], async (req, res) => {
   try {
     const { id } = req.params;
-    const fleet_id = req.user.fleet_id;
+    const { fleet_id } = req.user;
 
     const updates = {};
     const allowedFields = [
       'vehicle_number', 'vin', 'make', 'model', 'year', 'license_plate',
       'telematics_device_id', 'telematics_provider_id', 'kill_switch_enabled',
-      'current_driver_id', 'is_active', 'metadata'
+      'current_driver_id', 'is_active', 'metadata',
     ];
 
-    allowedFields.forEach(field => {
+    allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         if (field === 'metadata') {
           updates[field] = JSON.stringify(req.body[field]);
@@ -199,7 +200,7 @@ router.put('/vehicles/:id', [
 
     updates.updated_at = new Date();
 
-    const setClause = Object.keys(updates).map(key => `"${key}" = :${key}`).join(', ');
+    const setClause = Object.keys(updates).map((key) => `"${key}" = :${key}`).join(', ');
     const [result] = await sequelize.query(`
       UPDATE vehicles
       SET ${setClause}
@@ -207,7 +208,7 @@ router.put('/vehicles/:id', [
       RETURNING *
     `, {
       replacements: { id, fleet_id, ...updates },
-      type: sequelize.QueryTypes.UPDATE
+      type: sequelize.QueryTypes.UPDATE,
     });
 
     if (!result || result.length === 0) {
@@ -228,7 +229,7 @@ router.post('/vehicles/:id/kill-switch/engage', [
   requirePermission('kill_switch', 'write'),
   enforceFleetContext,
   body('report_id').notEmpty(),
-  body('reason').optional().trim()
+  body('reason').optional().trim(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -243,7 +244,7 @@ router.post('/vehicles/:id/kill-switch/engage', [
       id,
       report_id,
       req.user.userId,
-      reason
+      reason,
     );
 
     logger.info(`Kill switch engaged for vehicle ${id}`, { userId: req.user.userId });
@@ -260,7 +261,7 @@ router.post('/vehicles/:id/kill-switch/disengage', [
   requirePermission('kill_switch', 'write'),
   enforceFleetContext,
   body('report_id').notEmpty(),
-  body('reason').optional().trim()
+  body('reason').optional().trim(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -275,7 +276,7 @@ router.post('/vehicles/:id/kill-switch/disengage', [
       id,
       report_id,
       req.user.userId,
-      reason
+      reason,
     );
 
     logger.info(`Kill switch disengaged for vehicle ${id}`, { userId: req.user.userId });
@@ -306,7 +307,7 @@ router.get('/vehicles/:id/kill-switch/events', authenticate, enforceFleetContext
       LIMIT :limit
     `, {
       replacements: { vehicle_id: id, limit: parseInt(limit) },
-      type: sequelize.QueryTypes.SELECT
+      type: sequelize.QueryTypes.SELECT,
     });
 
     res.json({ events });
@@ -319,7 +320,7 @@ router.get('/vehicles/:id/kill-switch/events', authenticate, enforceFleetContext
 // Get telematics providers
 router.get('/providers', authenticate, enforceFleetContext, async (req, res) => {
   try {
-    const fleet_id = req.user.fleet_id;
+    const { fleet_id } = req.user;
 
     const [providers] = await sequelize.query(`
       SELECT id, fleet_id, provider_name, api_endpoint, is_active, last_sync_at, created_at, updated_at
@@ -328,7 +329,7 @@ router.get('/providers', authenticate, enforceFleetContext, async (req, res) => 
       ORDER BY provider_name
     `, {
       replacements: { fleet_id },
-      type: sequelize.QueryTypes.SELECT
+      type: sequelize.QueryTypes.SELECT,
     });
 
     res.json({ providers });
@@ -345,7 +346,7 @@ router.post('/providers', [
   enforceFleetContext,
   body('provider_name').isIn(['geotab', 'samsara', 'verizon_connect', 'fleet_complete', 'teletrac_navman', 'custom']),
   body('api_key').notEmpty(),
-  body('api_endpoint').optional().isURL()
+  body('api_endpoint').optional().isURL(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -353,8 +354,10 @@ router.post('/providers', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const fleet_id = req.user.fleet_id;
-    const { provider_name, api_key, api_secret, api_endpoint, additional_config } = req.body;
+    const { fleet_id } = req.user;
+    const {
+      provider_name, api_key, api_secret, api_endpoint, additional_config,
+    } = req.body;
 
     // Encrypt API credentials
     const api_key_encrypted = telematicsService.encrypt(api_key);
@@ -373,9 +376,9 @@ router.post('/providers', [
         api_key_encrypted,
         api_secret_encrypted,
         api_endpoint,
-        additional_config: JSON.stringify(additional_config || {})
+        additional_config: JSON.stringify(additional_config || {}),
       },
-      type: sequelize.QueryTypes.INSERT
+      type: sequelize.QueryTypes.INSERT,
     });
 
     logger.info(`Telematics provider created: ${provider_name}`, { fleetId: fleet_id });

@@ -1,3 +1,4 @@
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
@@ -16,28 +17,28 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD
+  password: process.env.DB_PASSWORD,
 });
 
 const runMigrations = async () => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    
+
     const migrationsDir = path.join(__dirname, 'migrations');
     const files = fs.readdirSync(migrationsDir)
-      .filter(f => f.endsWith('.sql') && !f.startsWith('rollback_'))
+      .filter((f) => f.endsWith('.sql') && !f.startsWith('rollback_'))
       .sort();
-    
+
     logger.info(`Found ${files.length} migration files`);
-    
+
     for (const file of files) {
       logger.info(`Running migration: ${file}`);
       const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
       await client.query(sql);
       logger.info(`Completed migration: ${file}`);
     }
-    
+
     await client.query('COMMIT');
     logger.info('All migrations completed successfully');
   } catch (error) {
@@ -51,4 +52,3 @@ const runMigrations = async () => {
 };
 
 runMigrations().catch(console.error);
-

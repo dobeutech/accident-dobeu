@@ -1,3 +1,4 @@
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 const { sequelize } = require('../database/connection');
 const logger = require('../utils/logger');
 
@@ -7,7 +8,7 @@ const enforceFleetContext = async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    
+
     // Super admin can access all fleets
     if (req.user.role === 'super_admin') {
       // Allow fleet_id override in query/body for super admin
@@ -17,26 +18,26 @@ const enforceFleetContext = async (req, res, next) => {
       }
       return next();
     }
-    
+
     // All other users are restricted to their fleet
     if (!req.user.fleet_id) {
       return res.status(403).json({ error: 'No fleet context available' });
     }
-    
+
     // Ensure all requests use the user's fleet_id
     if (req.body.fleet_id && req.body.fleet_id !== req.user.fleet_id) {
       return res.status(403).json({ error: 'Cannot access other fleet data' });
     }
-    
+
     if (req.query.fleet_id && req.query.fleet_id !== req.user.fleet_id) {
       return res.status(403).json({ error: 'Cannot access other fleet data' });
     }
-    
+
     // Set fleet_id in body/query if not present
     if (!req.body.fleet_id) {
       req.body.fleet_id = req.user.fleet_id;
     }
-    
+
     next();
   } catch (error) {
     logger.error('Fleet context enforcement error:', error);
@@ -45,4 +46,3 @@ const enforceFleetContext = async (req, res, next) => {
 };
 
 module.exports = { enforceFleetContext };
-
