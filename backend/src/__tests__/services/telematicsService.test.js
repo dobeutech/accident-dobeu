@@ -22,11 +22,11 @@ describe('TelematicsService', () => {
       const mockVehicle = {
         id: vehicleId,
         fleet_id: 'fleet-uuid',
-        kill_switch_enabled: true,
+        kill_switch_enabled: false,
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: telematicsService.encrypt("encrypted_key"),
         last_location_lat: 40.7128,
         last_location_lng: -74.0060,
       };
@@ -75,8 +75,7 @@ describe('TelematicsService', () => {
         kill_switch_enabled: false,
       };
 
-      sequelize.query.mockResolvedValueOnce([[mockVehicle]]);
-
+      sequelize.query.mockResolvedValueOnce([[]]);
       await expect(
         telematicsService.engageKillSwitch(vehicleId, reportId, userId)
       ).rejects.toThrow('Vehicle not found or kill switch not enabled');
@@ -96,7 +95,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: telematicsService.encrypt("encrypted_key"),
         last_location_lat: 40.7128,
         last_location_lng: -74.0060,
       };
@@ -136,11 +135,11 @@ describe('TelematicsService', () => {
       const mockVehicle = {
         id: 'vehicle-uuid',
         fleet_id: 'fleet-uuid',
-        kill_switch_enabled: true,
+        kill_switch_enabled: false,
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: telematicsService.encrypt("encrypted_key"),
       };
 
       sequelize.query
