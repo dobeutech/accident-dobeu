@@ -11,9 +11,9 @@ const router = express.Router();
 router.get('/:reportId', authenticate, enforceFleetContext, async (req, res) => {
   try {
     const { reportId } = req.params;
-    
+
     const workflow = await workflowService.checkWorkflowStatus(reportId);
-    
+
     if (!workflow) {
       return res.status(404).json({ error: 'Workflow not found' });
     }
@@ -157,8 +157,8 @@ router.get('/override-requests/pending', [
 ], async (req, res) => {
   try {
     const fleet_id = req.user.fleet_id;
-    const supervisor_id = req.user.role === 'fleet_admin' || req.user.role === 'fleet_manager' 
-      ? req.user.userId 
+    const supervisor_id = req.user.role === 'fleet_admin' || req.user.role === 'fleet_manager'
+      ? req.user.userId
       : null;
 
     const requests = await workflowService.getPendingOverrideRequests(fleet_id, supervisor_id);

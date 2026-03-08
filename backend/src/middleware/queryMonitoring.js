@@ -16,7 +16,7 @@ function setupQueryMonitoring(sequelize) {
 
   sequelize.addHook('afterQuery', (options, query) => {
     const duration = Date.now() - options.startTime;
-    
+
     // Log slow queries
     if (duration > SLOW_QUERY_THRESHOLD) {
       const slowQuery = {
@@ -27,7 +27,7 @@ function setupQueryMonitoring(sequelize) {
       };
 
       slowQueries.push(slowQuery);
-      
+
       // Keep only last MAX_SLOW_QUERIES
       if (slowQueries.length > MAX_SLOW_QUERIES) {
         slowQueries.shift();
@@ -73,7 +73,7 @@ function getSlowQueryStats() {
     // Extract query type (SELECT, INSERT, UPDATE, DELETE)
     const match = q.query.match(/^(SELECT|INSERT|UPDATE|DELETE)/i);
     const type = match ? match[1].toUpperCase() : 'OTHER';
-    
+
     if (!queryPatterns[type]) {
       queryPatterns[type] = { count: 0, totalDuration: 0 };
     }
@@ -108,7 +108,7 @@ function clearSlowQueries() {
  */
 function getPoolStats(sequelize) {
   const pool = sequelize.connectionManager.pool;
-  
+
   return {
     size: pool.size,
     available: pool.available,
@@ -165,7 +165,7 @@ async function getDatabaseStats(sequelize) {
       databaseSize: sizeResult[0].size,
       tables: tableResults,
       connections: connectionResults[0],
-      cacheHitRatio: cacheResults[0].cache_hit_ratio 
+      cacheHitRatio: cacheResults[0].cache_hit_ratio
         ? parseFloat(cacheResults[0].cache_hit_ratio).toFixed(2) + '%'
         : 'N/A',
       poolStats: getPoolStats(sequelize),
@@ -186,7 +186,7 @@ function startPeriodicMonitoring(sequelize, intervalMs = 60000) {
   setInterval(async () => {
     try {
       const stats = await getDatabaseStats(sequelize);
-      
+
       logger.info('Database statistics', {
         databaseSize: stats.databaseSize,
         connections: stats.connections,

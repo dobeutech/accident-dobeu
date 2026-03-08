@@ -4,7 +4,7 @@ module.exports = {
     env: 'production',
     trustProxy: true
   },
-  
+
   database: {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT) || 5432,
@@ -24,18 +24,18 @@ module.exports = {
       }
     }
   },
-  
+
   jwt: {
     secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRES_IN || '24h'
   },
-  
+
   cors: {
     origin: process.env.CORS_ORIGIN?.split(',') || [],
     credentials: true,
     optionsSuccessStatus: 200
   },
-  
+
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
@@ -43,14 +43,14 @@ module.exports = {
     legacyHeaders: false,
     message: 'Too many requests from this IP, please try again later.'
   },
-  
+
   aws: {
     region: process.env.AWS_REGION,
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     s3Bucket: process.env.AWS_S3_BUCKET
   },
-  
+
   logging: {
     level: process.env.LOG_LEVEL || 'info',
     file: {
@@ -63,7 +63,7 @@ module.exports = {
       enabled: false
     }
   },
-  
+
   session: {
     secret: process.env.SESSION_SECRET,
     cookie: {
@@ -73,13 +73,13 @@ module.exports = {
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
   },
-  
+
   security: {
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS) || 12,
     maxLoginAttempts: parseInt(process.env.MAX_LOGIN_ATTEMPTS) || 5,
     lockoutDuration: parseInt(process.env.LOCKOUT_DURATION) || 15 * 60 * 1000
   },
-  
+
   upload: {
     maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024,
     allowedTypes: process.env.ALLOWED_FILE_TYPES?.split(',') || [
@@ -89,12 +89,12 @@ module.exports = {
       'application/pdf'
     ]
   },
-  
+
   socket: {
     pingTimeout: parseInt(process.env.SOCKET_PING_TIMEOUT) || 60000,
     pingInterval: parseInt(process.env.SOCKET_PING_INTERVAL) || 25000
   },
-  
+
   features: {
     swaggerDocs: process.env.ENABLE_SWAGGER_DOCS === 'true',
     debugLogging: process.env.ENABLE_DEBUG_LOGGING === 'true',
