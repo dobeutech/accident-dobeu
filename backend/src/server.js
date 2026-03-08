@@ -14,12 +14,13 @@ const logger = require('./utils/logger');
 const { runStartupValidation } = require('./utils/validateEnv');
 
 // Run startup validation
-runStartupValidation().catch(error => {
-  logger.error('Startup validation failed:', error);
-  process.exit(1);
-});
-
 const app = express();
+if (require.main === module) {
+  runStartupValidation().catch(error => {
+    logger.error('Startup validation failed:', error);
+    process.exit(1);
+  });
+}
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
@@ -223,16 +224,18 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-httpServer.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.info(`Process ID: ${process.pid}`);
-  
-  // Send ready signal to PM2
-  if (process.send) {
-    process.send('ready');
-  }
-});
+if (require.main === module) {
+  httpServer.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
+    logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`Process ID: ${process.pid}`);
+
+    // Send ready signal to PM2
+    if (process.send) {
+      process.send('ready');
+    }
+  });
+}
 
 // Database keep-alive query
 setInterval(async () => {
