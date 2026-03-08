@@ -131,14 +131,31 @@ export const reportStorage = {
   
   async update(id, updates) {
     const db = getDatabase();
-    const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
-    const values = Object.values(updates);
     
-    if (updates.custom_fields) {
-      const index = Object.keys(updates).indexOf('custom_fields');
-      values[index] = JSON.stringify(updates.custom_fields);
+    // Whitelist allowed fields to prevent SQL injection
+    const allowedFields = [
+      'fleet_id', 'driver_id', 'report_number', 'incident_type',
+      'status', 'latitude', 'longitude', 'address', 'incident_date',
+      'custom_fields', 'is_offline', 'synced_at'
+    ];
+
+    // Filter updates to only include allowed fields
+    const validKeys = Object.keys(updates).filter(key => allowedFields.includes(key));
+
+    if (validKeys.length === 0) {
+      return; // Nothing to update
     }
     
+    // Double-quote identifiers and use parameterized queries
+    const fields = validKeys.map(key => `"${key}" = ?`).join(', ');
+
+    const values = validKeys.map(key => {
+      if (key === 'custom_fields') {
+        return JSON.stringify(updates[key]);
+      }
+      return updates[key];
+    });
+
     values.push(id);
     
     await db.runAsync(
