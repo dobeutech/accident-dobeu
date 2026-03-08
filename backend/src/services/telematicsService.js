@@ -39,6 +39,10 @@ class TelematicsService {
 
       const vehicle = vehicles[0];
 
+      if (vehicle.kill_switch_enabled === false) {
+        throw new Error('Vehicle not found or kill switch not enabled');
+      }
+
       // Update vehicle status
       await sequelize.query(`
         UPDATE vehicles

@@ -41,16 +41,25 @@ export default function ReportsScreen() {
           const serverReports = response.data.reports;
           
           // Merge with local data
-          const merged = [...localReports];
+          const mergedMap = new Map();
+
+          // First add all local reports
+          localReports.forEach(localReport => {
+            mergedMap.set(localReport.id, localReport);
+          });
+
+          // Then merge or add server reports
           serverReports.forEach(serverReport => {
-            const index = merged.findIndex(r => r.id === serverReport.id);
-            if (index >= 0) {
-              merged[index] = { ...merged[index], ...serverReport, is_offline: 0 };
+            const existing = mergedMap.get(serverReport.id);
+            if (existing) {
+              mergedMap.set(serverReport.id, { ...existing, ...serverReport, is_offline: 0 });
             } else {
-              merged.push({ ...serverReport, is_offline: 0 });
+              mergedMap.set(serverReport.id, { ...serverReport, is_offline: 0 });
             }
           });
           
+          const merged = Array.from(mergedMap.values());
+
           setReports(merged);
           
           // Sync pending items
