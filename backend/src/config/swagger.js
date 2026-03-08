@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const options = {
