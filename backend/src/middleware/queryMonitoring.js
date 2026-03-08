@@ -10,7 +10,7 @@ const SLOW_QUERY_THRESHOLD = parseInt(process.env.SLOW_QUERY_THRESHOLD) || 1000;
  */
 function setupQueryMonitoring(sequelize) {
   // Hook into Sequelize logging
-  sequelize.addHook('beforeQuery', options => {
+  sequelize.addHook('beforeQuery', (options) => {
     options.startTime = Date.now();
   });
 
@@ -23,7 +23,7 @@ function setupQueryMonitoring(sequelize) {
         query: query.sql || query,
         duration,
         timestamp: new Date().toISOString(),
-        bind: query.bind,
+        bind: query.bind
       };
 
       slowQueries.push(slowQuery);
@@ -36,7 +36,7 @@ function setupQueryMonitoring(sequelize) {
       logger.warn('Slow query detected', {
         duration,
         query: query.sql || query,
-        threshold: SLOW_QUERY_THRESHOLD,
+        threshold: SLOW_QUERY_THRESHOLD
       });
     }
 
@@ -44,7 +44,7 @@ function setupQueryMonitoring(sequelize) {
     if (process.env.NODE_ENV === 'development' && process.env.LOG_QUERIES === 'true') {
       logger.debug('Query executed', {
         duration,
-        query: query.sql || query,
+        query: query.sql || query
       });
     }
   });
@@ -57,7 +57,7 @@ function getSlowQueryStats() {
   if (slowQueries.length === 0) {
     return {
       count: 0,
-      queries: [],
+      queries: []
     };
   }
 
@@ -91,8 +91,8 @@ function getSlowQueryStats() {
     recentQueries: slowQueries.slice(-10).map(q => ({
       query: q.query.substring(0, 200), // Truncate long queries
       duration: q.duration,
-      timestamp: q.timestamp,
-    })),
+      timestamp: q.timestamp
+    }))
   };
 }
 
@@ -115,7 +115,7 @@ function getPoolStats(sequelize) {
     using: pool.using,
     waiting: pool.waiting,
     maxSize: pool.max,
-    minSize: pool.min,
+    minSize: pool.min
   };
 }
 
@@ -169,12 +169,12 @@ async function getDatabaseStats(sequelize) {
         ? parseFloat(cacheResults[0].cache_hit_ratio).toFixed(2) + '%'
         : 'N/A',
       poolStats: getPoolStats(sequelize),
-      slowQueries: getSlowQueryStats(),
+      slowQueries: getSlowQueryStats()
     };
   } catch (error) {
     logger.error('Error getting database stats:', error);
     return {
-      error: error.message,
+      error: error.message
     };
   }
 }
@@ -192,13 +192,13 @@ function startPeriodicMonitoring(sequelize, intervalMs = 60000) {
         connections: stats.connections,
         cacheHitRatio: stats.cacheHitRatio,
         poolStats: stats.poolStats,
-        slowQueryCount: stats.slowQueries.count,
+        slowQueryCount: stats.slowQueries.count
       });
 
       // Alert if cache hit ratio is low
       if (stats.cacheHitRatio && parseFloat(stats.cacheHitRatio) < 90) {
         logger.warn('Low database cache hit ratio', {
-          cacheHitRatio: stats.cacheHitRatio,
+          cacheHitRatio: stats.cacheHitRatio
         });
       }
 
@@ -206,7 +206,7 @@ function startPeriodicMonitoring(sequelize, intervalMs = 60000) {
       if (stats.poolStats.using / stats.poolStats.maxSize > 0.8) {
         logger.warn('Database connection pool nearly exhausted', {
           using: stats.poolStats.using,
-          maxSize: stats.poolStats.maxSize,
+          maxSize: stats.poolStats.maxSize
         });
       }
     } catch (error) {
@@ -221,5 +221,5 @@ module.exports = {
   clearSlowQueries,
   getPoolStats,
   getDatabaseStats,
-  startPeriodicMonitoring,
+  startPeriodicMonitoring
 };

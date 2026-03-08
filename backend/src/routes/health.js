@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -22,7 +22,7 @@ router.get('/detailed', async (req, res) => {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
     status: 'healthy',
-    checks: {},
+    checks: {}
   };
 
   // Database check
@@ -31,13 +31,13 @@ router.get('/detailed', async (req, res) => {
     const [result] = await sequelize.query('SELECT NOW() as time');
     checks.checks.database = {
       status: 'healthy',
-      responseTime: result[0]?.time ? 'ok' : 'unknown',
+      responseTime: result[0]?.time ? 'ok' : 'unknown'
     };
   } catch (error) {
     checks.status = 'unhealthy';
     checks.checks.database = {
       status: 'unhealthy',
-      error: error.message,
+      error: error.message
     };
     logger.error('Database health check failed:', error);
   }
@@ -53,7 +53,7 @@ router.get('/detailed', async (req, res) => {
     heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
     heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
     rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
-    systemUsage: `${memoryUsagePercent.toFixed(2)}%`,
+    systemUsage: `${memoryUsagePercent.toFixed(2)}%`
   };
 
   // CPU check
@@ -65,8 +65,8 @@ router.get('/detailed', async (req, res) => {
     loadAverage: {
       '1min': avgLoad[0].toFixed(2),
       '5min': avgLoad[1].toFixed(2),
-      '15min': avgLoad[2].toFixed(2),
-    },
+      '15min': avgLoad[2].toFixed(2)
+    }
   };
 
   // Disk check (if available)
@@ -76,12 +76,12 @@ router.get('/detailed', async (req, res) => {
     const diskUsagePercent = ((stats.blocks - stats.bfree) / stats.blocks) * 100;
     checks.checks.disk = {
       status: diskUsagePercent < 90 ? 'healthy' : 'warning',
-      usage: `${diskUsagePercent.toFixed(2)}%`,
+      usage: `${diskUsagePercent.toFixed(2)}%`
     };
   } catch (error) {
     checks.checks.disk = {
       status: 'unknown',
-      error: 'Unable to check disk usage',
+      error: 'Unable to check disk usage'
     };
   }
 
@@ -118,7 +118,7 @@ router.get('/metrics', async (req, res) => {
       uptime: process.uptime(),
       pid: process.pid,
       memory: process.memoryUsage(),
-      cpu: process.cpuUsage(),
+      cpu: process.cpuUsage()
     },
     system: {
       platform: os.platform(),
@@ -127,8 +127,8 @@ router.get('/metrics', async (req, res) => {
       totalMemory: os.totalmem(),
       freeMemory: os.freemem(),
       cpus: os.cpus().length,
-      loadAverage: os.loadavg(),
-    },
+      loadAverage: os.loadavg()
+    }
   };
 
   // Add database stats if available

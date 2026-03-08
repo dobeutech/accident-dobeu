@@ -26,12 +26,7 @@ describe('ImageValidationService', () => {
       detectText: jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({
           TextDetections: [
-            {
-              Type: 'LINE',
-              DetectedText: 'ABC1234',
-              Confidence: 96.2,
-              Geometry: { BoundingBox: { Top: 0.1 } },
-            },
+            { Type: 'LINE', DetectedText: 'ABC1234', Confidence: 96.2, Geometry: { BoundingBox: { Top: 0.1 } } },
           ],
         }),
       }),
@@ -90,10 +85,10 @@ describe('ImageValidationService', () => {
 
       expect(result).toHaveProperty('validationId');
       expect(result).toHaveProperty('status');
-      // expect(mockRekognition.detectLabels).toHaveBeenCalled();
-      // expect(mockRekognition.detectText).toHaveBeenCalled();
-      // expect(mockRekognition.detectModerationLabels).toHaveBeenCalled();
-      // expect(mockRekognition.detectFaces).toHaveBeenCalled();
+      expect(mockRekognition.detectLabels).toHaveBeenCalled();
+      expect(mockRekognition.detectText).toHaveBeenCalled();
+      expect(mockRekognition.detectModerationLabels).toHaveBeenCalled();
+      expect(mockRekognition.detectFaces).toHaveBeenCalled();
     });
 
     it('should detect vehicle damage from labels', async () => {
@@ -165,7 +160,9 @@ describe('ImageValidationService', () => {
     it('should flag inappropriate content', async () => {
       mockRekognition.detectModerationLabels = jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({
-          ModerationLabels: [{ Name: 'Explicit Content', Confidence: 95, ParentName: 'Explicit' }],
+          ModerationLabels: [
+            { Name: 'Explicit Content', Confidence: 95, ParentName: 'Explicit' },
+          ],
         }),
       });
 
@@ -185,13 +182,7 @@ describe('ImageValidationService', () => {
         fileKey
       );
 
-      // expect(result.status).toBe('flagged');
-      // Restore the mock
-      mockRekognition.detectModerationLabels = jest.fn().mockReturnValue({
-        promise: jest.fn().mockResolvedValue({
-          ModerationLabels: [],
-        }),
-      });
+      expect(result.status).toBe('flagged');
     });
   });
 
@@ -212,7 +203,7 @@ describe('ImageValidationService', () => {
 
       expect(results).toHaveLength(2);
       expect(results[0].success).toBe(true);
-      // expect(results[1].success).toBe(true);
+      expect(results[1].success).toBe(true);
     });
 
     it('should handle partial failures in batch validation', async () => {
@@ -229,9 +220,9 @@ describe('ImageValidationService', () => {
       const results = await imageValidationService.batchValidateImages(photos);
 
       expect(results).toHaveLength(2);
-      // expect(results[0].success).toBe(true);
-      // expect(results[1].success).toBe(false);
-      // expect(results[1].error).toBe('Validation failed');
+      expect(results[0].success).toBe(true);
+      expect(results[1].success).toBe(false);
+      expect(results[1].error).toBe('Validation failed');
     });
   });
 

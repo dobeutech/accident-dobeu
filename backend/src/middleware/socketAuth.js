@@ -3,9 +3,7 @@ const logger = require('../utils/logger');
 
 const socketAuth = async (socket, next) => {
   try {
-    const token =
-      socket.handshake.auth?.token ||
-      socket.handshake.headers?.authorization?.replace('Bearer ', '');
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
 
     if (!token) {
       return next(new Error('Authentication error: No token provided'));

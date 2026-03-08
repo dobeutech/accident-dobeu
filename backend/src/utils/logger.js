@@ -44,14 +44,14 @@ if (isProduction) {
       level: 'error',
       maxsize: 10485760, // 10MB
       maxFiles: 14,
-      tailable: true,
+      tailable: true
     }),
     // Combined logs
     new winston.transports.File({
       filename: path.join(logsDir, 'combined.log'),
       maxsize: 10485760, // 10MB
       maxFiles: 14,
-      tailable: true,
+      tailable: true
     }),
     // Security audit logs
     new winston.transports.File({
@@ -59,7 +59,7 @@ if (isProduction) {
       level: 'warn',
       maxsize: 10485760, // 10MB
       maxFiles: 30,
-      tailable: true,
+      tailable: true
     })
   );
 }
@@ -68,7 +68,7 @@ if (isProduction) {
 if (!isProduction) {
   transports.push(
     new winston.transports.Console({
-      format: developmentFormat,
+      format: developmentFormat
     })
   );
 }
@@ -78,10 +78,10 @@ const logger = winston.createLogger({
   format: isProduction ? productionFormat : developmentFormat,
   defaultMeta: {
     service: 'accident-app-backend',
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NODE_ENV || 'development'
   },
   transports,
-  exitOnError: false,
+  exitOnError: false
 });
 
 // Add security logging helper
@@ -99,7 +99,7 @@ logger.exceptions.handle(
   new winston.transports.File({
     filename: path.join(logsDir, 'exceptions.log'),
     maxsize: 10485760,
-    maxFiles: 7,
+    maxFiles: 7
   })
 );
 
@@ -108,7 +108,7 @@ logger.rejections.handle(
   new winston.transports.File({
     filename: path.join(logsDir, 'rejections.log'),
     maxsize: 10485760,
-    maxFiles: 7,
+    maxFiles: 7
   })
 );
 

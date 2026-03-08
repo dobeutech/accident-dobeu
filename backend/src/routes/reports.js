@@ -11,15 +11,7 @@ const router = express.Router();
 // Get all reports
 router.get('/', authenticate, enforceFleetContext, async (req, res) => {
   try {
-    const {
-      status,
-      incident_type,
-      driver_id,
-      start_date,
-      end_date,
-      page = 1,
-      limit = 20,
-    } = req.query;
+    const { status, incident_type, driver_id, start_date, end_date, page = 1, limit = 20 } = req.query;
     const fleet_id = req.user.fleet_id;
     const offset = (page - 1) * limit;
 
@@ -57,8 +49,7 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
       replacements.user_id = req.user.userId;
     }
 
-    const [reports] = await sequelize.query(
-      `
+    const [reports] = await sequelize.query(`
       SELECT r.*, 
              u.first_name || ' ' || u.last_name as driver_name,
              u.email as driver_email,
@@ -72,24 +63,19 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
       GROUP BY r.id, u.first_name, u.last_name, u.email
       ORDER BY r.created_at DESC
       LIMIT :limit OFFSET :offset
-    `,
-      {
-        replacements,
-        type: sequelize.QueryTypes.SELECT,
-      }
-    );
+    `, {
+      replacements,
+      type: sequelize.QueryTypes.SELECT
+    });
 
-    const [countResult] = await sequelize.query(
-      `
+    const [countResult] = await sequelize.query(`
       SELECT COUNT(*) as total
       FROM accident_reports r
       ${whereClause}
-    `,
-      {
-        replacements: { ...replacements, limit: undefined, offset: undefined },
-        type: sequelize.QueryTypes.SELECT,
-      }
-    );
+    `, {
+      replacements: { ...replacements, limit: undefined, offset: undefined },
+      type: sequelize.QueryTypes.SELECT
+    });
 
     res.json({
       reports,
@@ -97,8 +83,8 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total: parseInt(countResult[0].total),
-        pages: Math.ceil(countResult[0].total / limit),
-      },
+        pages: Math.ceil(countResult[0].total / limit)
+      }
     });
   } catch (error) {
     logger.error('Get reports error:', error);
@@ -121,8 +107,7 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
       replacements.user_id = req.user.userId;
     }
 
-    const [reports] = await sequelize.query(
-      `
+    const [reports] = await sequelize.query(`
       SELECT r.*, 
              u.first_name || ' ' || u.last_name as driver_name,
              u.email as driver_email,
@@ -130,12 +115,10 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
       FROM accident_reports r
       LEFT JOIN users u ON r.driver_id = u.id
       ${whereClause}
-    `,
-      {
-        replacements,
-        type: sequelize.QueryTypes.SELECT,
-      }
-    );
+    `, {
+      replacements,
+      type: sequelize.QueryTypes.SELECT
+    });
 
     if (!reports || reports.length === 0) {
       return res.status(404).json({ error: 'Report not found' });
@@ -144,37 +127,31 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
     const report = reports[0];
 
     // Get photos
-    const [photos] = await sequelize.query(
-      `
+    const [photos] = await sequelize.query(`
       SELECT * FROM report_photos 
       WHERE report_id = :id 
       ORDER BY order_index, created_at
-    `,
-      {
-        replacements: { id },
-        type: sequelize.QueryTypes.SELECT,
-      }
-    );
+    `, {
+      replacements: { id },
+      type: sequelize.QueryTypes.SELECT
+    });
 
     // Get audio
-    const [audio] = await sequelize.query(
-      `
+    const [audio] = await sequelize.query(`
       SELECT * FROM report_audio 
       WHERE report_id = :id 
       ORDER BY created_at
-    `,
-      {
-        replacements: { id },
-        type: sequelize.QueryTypes.SELECT,
-      }
-    );
+    `, {
+      replacements: { id },
+      type: sequelize.QueryTypes.SELECT
+    });
 
     res.json({
       report: {
         ...report,
         photos,
-        audio,
-      },
+        audio
+      }
     });
   } catch (error) {
     logger.error('Get report error:', error);
@@ -183,36 +160,31 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
 });
 
 // Create report
-router.post(
-  '/',
-  [
-    authenticate,
-    requirePermission('reports', 'create'),
-    enforceFleetContext,
-    body('incident_type').isIn(['accident', 'incident', 'near_miss']),
-    body('incident_date').optional().isISO8601(),
-    body('latitude').optional().isFloat(),
-    body('longitude').optional().isFloat(),
-    body('address').optional().trim(),
-    body('custom_fields').optional().isObject(),
-  ],
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
+router.post('/', [
+  authenticate,
+  requirePermission('reports', 'create'),
+  enforceFleetContext,
+  body('incident_type').isIn(['accident', 'incident', 'near_miss']),
+  body('incident_date').optional().isISO8601(),
+  body('latitude').optional().isFloat(),
+  body('longitude').optional().isFloat(),
+  body('address').optional().trim(),
+  body('custom_fields').optional().isObject()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-      const { incident_type, incident_date, latitude, longitude, address, custom_fields } =
-        req.body;
-      const fleet_id = req.user.fleet_id;
-      const driver_id = req.user.role === 'driver' ? req.user.userId : req.body.driver_id;
+    const { incident_type, incident_date, latitude, longitude, address, custom_fields } = req.body;
+    const fleet_id = req.user.fleet_id;
+    const driver_id = req.user.role === 'driver' ? req.user.userId : req.body.driver_id;
 
-      // Generate report number
-      const report_number = `RPT-${Date.now()}-${uuidv4().substring(0, 8).toUpperCase()}`;
+    // Generate report number
+    const report_number = `RPT-${Date.now()}-${uuidv4().substring(0, 8).toUpperCase()}`;
 
-      const [result] = await sequelize.query(
-        `
+    const [result] = await sequelize.query(`
       INSERT INTO accident_reports 
         (fleet_id, driver_id, report_number, incident_type, incident_date, 
          latitude, longitude, address, custom_fields, status)
@@ -220,152 +192,123 @@ router.post(
         (:fleet_id, :driver_id, :report_number, :incident_type, :incident_date,
          :latitude, :longitude, :address, :custom_fields, 'draft')
       RETURNING *
-    `,
-        {
-          replacements: {
-            fleet_id,
-            driver_id,
-            report_number,
-            incident_type,
-            incident_date: incident_date || new Date(),
-            latitude,
-            longitude,
-            address,
-            custom_fields: JSON.stringify(custom_fields || {}),
-          },
-          type: sequelize.QueryTypes.INSERT,
-        }
-      );
+    `, {
+      replacements: {
+        fleet_id,
+        driver_id,
+        report_number,
+        incident_type,
+        incident_date: incident_date || new Date(),
+        latitude,
+        longitude,
+        address,
+        custom_fields: JSON.stringify(custom_fields || {})
+      },
+      type: sequelize.QueryTypes.INSERT
+    });
 
-      const report = result[0];
+    const report = result[0];
 
-      logger.info(`Report created: ${report_number}`, {
-        reportId: report.id,
-        fleetId: fleet_id,
-        createdBy: req.user.userId,
-      });
+    logger.info(`Report created: ${report_number}`, {
+      reportId: report.id,
+      fleetId: fleet_id,
+      createdBy: req.user.userId
+    });
 
-      res.status(201).json({ report });
-    } catch (error) {
-      logger.error('Create report error:', error);
-      res.status(500).json({ error: 'Failed to create report' });
-    }
+    res.status(201).json({ report });
+  } catch (error) {
+    logger.error('Create report error:', error);
+    res.status(500).json({ error: 'Failed to create report' });
   }
-);
+});
 
 // Update report
-router.put(
-  '/:id',
-  [
-    authenticate,
-    requirePermission('reports', 'write'),
-    enforceFleetContext,
-    body('status').optional().isIn(['draft', 'submitted', 'under_review', 'closed']),
-    body('incident_type').optional().isIn(['accident', 'incident', 'near_miss']),
-    body('custom_fields').optional().isObject(),
-  ],
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
+router.put('/:id', [
+  authenticate,
+  requirePermission('reports', 'write'),
+  enforceFleetContext,
+  body('status').optional().isIn(['draft', 'submitted', 'under_review', 'closed']),
+  body('incident_type').optional().isIn(['accident', 'incident', 'near_miss']),
+  body('custom_fields').optional().isObject()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-      const { id } = req.params;
-      const fleet_id = req.user.fleet_id;
+    const { id } = req.params;
+    const fleet_id = req.user.fleet_id;
 
-      const updates = {};
-      const allowedFields = [
-        'status',
-        'incident_type',
-        'incident_date',
-        'latitude',
-        'longitude',
-        'address',
-        'custom_fields',
-      ];
+    const updates = {};
+    const allowedFields = ['status', 'incident_type', 'incident_date', 'latitude', 'longitude', 'address', 'custom_fields'];
 
-      allowedFields.forEach(field => {
-        if (req.body[field] !== undefined) {
-          if (field === 'custom_fields') {
-            updates[field] = JSON.stringify(req.body[field]);
-          } else {
-            updates[field] = req.body[field];
-          }
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        if (field === 'custom_fields') {
+          updates[field] = JSON.stringify(req.body[field]);
+        } else {
+          updates[field] = req.body[field];
         }
-      });
-
-      if (Object.keys(updates).length === 0) {
-        return res.status(400).json({ error: 'No valid fields to update' });
       }
+    });
 
-      updates.updated_at = new Date();
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
 
-      const setClause = Object.keys(updates)
-        .map(key => `${key} = :${key}`)
-        .join(', ');
-      const [result] = await sequelize.query(
-        `
+    updates.updated_at = new Date();
+
+    const setClause = Object.keys(updates).map(key => `${key} = :${key}`).join(', ');
+    const [result] = await sequelize.query(`
       UPDATE accident_reports 
       SET ${setClause}
       WHERE id = :id AND fleet_id = :fleet_id
       RETURNING *
-    `,
-        {
-          replacements: { id, fleet_id, ...updates },
-          type: sequelize.QueryTypes.UPDATE,
-        }
-      );
+    `, {
+      replacements: { id, fleet_id, ...updates },
+      type: sequelize.QueryTypes.UPDATE
+    });
 
-      if (!result || result.length === 0) {
-        return res.status(404).json({ error: 'Report not found' });
-      }
-
-      logger.info(`Report updated: ${id}`, { updatedBy: req.user.userId });
-
-      res.json({ report: result[0] });
-    } catch (error) {
-      logger.error('Update report error:', error);
-      res.status(500).json({ error: 'Failed to update report' });
+    if (!result || result.length === 0) {
+      return res.status(404).json({ error: 'Report not found' });
     }
+
+    logger.info(`Report updated: ${id}`, { updatedBy: req.user.userId });
+
+    res.json({ report: result[0] });
+  } catch (error) {
+    logger.error('Update report error:', error);
+    res.status(500).json({ error: 'Failed to update report' });
   }
-);
+});
 
 // Delete report
-router.delete(
-  '/:id',
-  authenticate,
-  requirePermission('reports', 'delete'),
-  enforceFleetContext,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const fleet_id = req.user.fleet_id;
+router.delete('/:id', authenticate, requirePermission('reports', 'delete'), enforceFleetContext, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const fleet_id = req.user.fleet_id;
 
-      const [result] = await sequelize.query(
-        `
+    const [result] = await sequelize.query(`
       DELETE FROM accident_reports 
       WHERE id = :id AND fleet_id = :fleet_id 
       RETURNING id
-    `,
-        {
-          replacements: { id, fleet_id },
-          type: sequelize.QueryTypes.DELETE,
-        }
-      );
+    `, {
+      replacements: { id, fleet_id },
+      type: sequelize.QueryTypes.DELETE
+    });
 
-      if (!result || result.length === 0) {
-        return res.status(404).json({ error: 'Report not found' });
-      }
-
-      logger.info(`Report deleted: ${id}`, { deletedBy: req.user.userId });
-
-      res.json({ message: 'Report deleted successfully' });
-    } catch (error) {
-      logger.error('Delete report error:', error);
-      res.status(500).json({ error: 'Failed to delete report' });
+    if (!result || result.length === 0) {
+      return res.status(404).json({ error: 'Report not found' });
     }
+
+    logger.info(`Report deleted: ${id}`, { deletedBy: req.user.userId });
+
+    res.json({ message: 'Report deleted successfully' });
+  } catch (error) {
+    logger.error('Delete report error:', error);
+    res.status(500).json({ error: 'Failed to delete report' });
   }
-);
+});
 
 module.exports = router;

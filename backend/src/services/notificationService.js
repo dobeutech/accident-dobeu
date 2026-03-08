@@ -146,15 +146,7 @@ class NotificationService {
   /**
    * Send override request notification
    */
-  async notifyOverrideRequest(
-    requestId,
-    reportId,
-    vehicleId,
-    fleetId,
-    requestedBy,
-    reason,
-    urgency
-  ) {
+  async notifyOverrideRequest(requestId, reportId, vehicleId, fleetId, requestedBy, reason, urgency) {
     try {
       const notification = {
         type: 'override_request',
@@ -224,15 +216,7 @@ class NotificationService {
   /**
    * Send override denial notification
    */
-  async notifyOverrideDenied(
-    requestId,
-    reportId,
-    vehicleId,
-    fleetId,
-    deniedBy,
-    requestedBy,
-    reason
-  ) {
+  async notifyOverrideDenied(requestId, reportId, vehicleId, fleetId, deniedBy, requestedBy, reason) {
     try {
       const notification = {
         type: 'override_denied',

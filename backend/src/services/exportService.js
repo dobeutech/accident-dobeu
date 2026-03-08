@@ -18,8 +18,7 @@ class ExportService {
         replacements.report_ids = reportIds;
       }
 
-      const [reports] = await sequelize.query(
-        `
+      const [reports] = await sequelize.query(`
         SELECT r.*, 
                u.first_name || ' ' || u.last_name as driver_name,
                u.email as driver_email,
@@ -28,34 +27,26 @@ class ExportService {
         LEFT JOIN users u ON r.driver_id = u.id
         ${whereClause}
         ORDER BY r.created_at DESC
-      `,
-        {
-          replacements,
-          type: sequelize.QueryTypes.SELECT,
-        }
-      );
+      `, {
+        replacements,
+        type: sequelize.QueryTypes.SELECT
+      });
 
       // Get photos and audio for each report
       for (const report of reports) {
-        const [photos] = await sequelize.query(
-          `
+        const [photos] = await sequelize.query(`
           SELECT * FROM report_photos WHERE report_id = :report_id ORDER BY order_index
-        `,
-          {
-            replacements: { report_id: report.id },
-            type: sequelize.QueryTypes.SELECT,
-          }
-        );
+        `, {
+          replacements: { report_id: report.id },
+          type: sequelize.QueryTypes.SELECT
+        });
 
-        const [audio] = await sequelize.query(
-          `
+        const [audio] = await sequelize.query(`
           SELECT * FROM report_audio WHERE report_id = :report_id ORDER BY created_at
-        `,
-          {
-            replacements: { report_id: report.id },
-            type: sequelize.QueryTypes.SELECT,
-          }
-        );
+        `, {
+          replacements: { report_id: report.id },
+          type: sequelize.QueryTypes.SELECT
+        });
 
         report.photos = photos;
         report.audio = audio;
@@ -127,12 +118,12 @@ class ExportService {
 
     doc.end();
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       doc.on('end', () => {
         resolve({
           data: Buffer.concat(chunks),
           contentType: 'application/pdf',
-          filename: `accident-reports-${Date.now()}.pdf`,
+          filename: `accident-reports-${Date.now()}.pdf`
         });
       });
     });
@@ -149,7 +140,7 @@ class ExportService {
       { header: 'Date', key: 'incident_date', width: 20 },
       { header: 'Type', key: 'incident_type', width: 15 },
       { header: 'Status', key: 'status', width: 15 },
-      { header: 'Location', key: 'address', width: 30 },
+      { header: 'Location', key: 'address', width: 30 }
     ];
 
     // Add rows
@@ -160,7 +151,7 @@ class ExportService {
         incident_date: new Date(report.incident_date),
         incident_type: report.incident_type,
         status: report.status,
-        address: report.address || 'N/A',
+        address: report.address || 'N/A'
       });
     });
 
@@ -169,7 +160,7 @@ class ExportService {
     return {
       data: buffer,
       contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      filename: `accident-reports-${Date.now()}.xlsx`,
+      filename: `accident-reports-${Date.now()}.xlsx`
     };
   }
 
@@ -181,18 +172,18 @@ class ExportService {
       new Date(report.incident_date).toISOString(),
       report.incident_type,
       report.status,
-      report.address || 'N/A',
+      report.address || 'N/A'
     ]);
 
     const csv = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
     return {
       data: Buffer.from(csv, 'utf-8'),
       contentType: 'text/csv',
-      filename: `accident-reports-${Date.now()}.csv`,
+      filename: `accident-reports-${Date.now()}.csv`
     };
   }
 
@@ -218,7 +209,7 @@ class ExportService {
     return {
       data: Buffer.from(xml, 'utf-8'),
       contentType: 'application/xml',
-      filename: `accident-reports-${Date.now()}.xml`,
+      filename: `accident-reports-${Date.now()}.xml`
     };
   }
 
@@ -228,7 +219,7 @@ class ExportService {
     return {
       data: Buffer.from(json, 'utf-8'),
       contentType: 'application/json',
-      filename: `accident-reports-${Date.now()}.json`,
+      filename: `accident-reports-${Date.now()}.json`
     };
   }
 
