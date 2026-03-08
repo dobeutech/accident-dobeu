@@ -1,6 +1,6 @@
+const AWS = require('aws-sdk');
 const imageValidationService = require('../../services/imageValidationService');
 const { sequelize } = require('../../database/connection');
-const AWS = require('aws-sdk');
 
 // Mock AWS SDK
 jest.mock('aws-sdk');
@@ -18,15 +18,21 @@ describe('ImageValidationService', () => {
       detectLabels: jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({
           Labels: [
-            { Name: 'Car', Confidence: 98.5, Categories: [{ Name: 'Vehicle' }], Instances: [] },
-            { Name: 'Damage', Confidence: 92.3, Categories: [], Instances: [] },
+            {
+              Name: 'Car', Confidence: 98.5, Categories: [{ Name: 'Vehicle' }], Instances: [],
+            },
+            {
+              Name: 'Damage', Confidence: 92.3, Categories: [], Instances: [],
+            },
           ],
         }),
       }),
       detectText: jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({
           TextDetections: [
-            { Type: 'LINE', DetectedText: 'ABC1234', Confidence: 96.2, Geometry: { BoundingBox: { Top: 0.1 } } },
+            {
+              Type: 'LINE', DetectedText: 'ABC1234', Confidence: 96.2, Geometry: { BoundingBox: { Top: 0.1 } },
+            },
           ],
         }),
       }),
@@ -80,7 +86,7 @@ describe('ImageValidationService', () => {
         photoId,
         reportId,
         fleetId,
-        fileKey
+        fileKey,
       );
 
       expect(result).toHaveProperty('validationId');
@@ -153,7 +159,7 @@ describe('ImageValidationService', () => {
       sequelize.query.mockRejectedValueOnce(new Error('Database error'));
 
       await expect(
-        imageValidationService.validateImage(photoId, reportId, fleetId, fileKey)
+        imageValidationService.validateImage(photoId, reportId, fleetId, fileKey),
       ).rejects.toThrow('Database error');
     });
 
@@ -179,7 +185,7 @@ describe('ImageValidationService', () => {
         photoId,
         reportId,
         fleetId,
-        fileKey
+        fileKey,
       );
 
       expect(result.status).toBe('flagged');
@@ -189,8 +195,12 @@ describe('ImageValidationService', () => {
   describe('batchValidateImages', () => {
     it('should validate multiple images', async () => {
       const photos = [
-        { id: 'photo-1', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image1.jpg' },
-        { id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg' },
+        {
+          id: 'photo-1', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image1.jpg',
+        },
+        {
+          id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg',
+        },
       ];
 
       sequelize.query
@@ -208,8 +218,12 @@ describe('ImageValidationService', () => {
 
     it('should handle partial failures in batch validation', async () => {
       const photos = [
-        { id: 'photo-1', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image1.jpg' },
-        { id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg' },
+        {
+          id: 'photo-1', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image1.jpg',
+        },
+        {
+          id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg',
+        },
       ];
 
       sequelize.query
@@ -243,7 +257,7 @@ describe('ImageValidationService', () => {
       expect(results).toEqual(mockResults);
       expect(sequelize.query).toHaveBeenCalledWith(
         expect.stringContaining('SELECT * FROM image_validations'),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -276,7 +290,7 @@ describe('ImageValidationService', () => {
             reviewer_id: reviewerId,
             notes,
           }),
-        })
+        }),
       );
     });
   });
@@ -299,7 +313,7 @@ describe('ImageValidationService', () => {
             reviewer_id: reviewerId,
             reason,
           }),
-        })
+        }),
       );
     });
   });
