@@ -199,7 +199,7 @@ const validateDateRange = (req, res, next) => {
 const validateResponse = (req, res, next) => {
   const originalJson = res.json;
 
-  res.json = function(data) {
+  res.json = function overrideJson(data) {
     // Ensure response has consistent structure
     if (data && typeof data === 'object' && !Array.isArray(data)) {
       // Add metadata if not present

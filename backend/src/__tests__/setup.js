@@ -1,10 +1,11 @@
 // Test setup file
 require('dotenv').config({ path: '.env.test' });
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 
 // Set test environment
 process.env.NODE_ENV = 'test';
-const crypto = require('crypto');
-
+// In order to avoid global require issues, we'll put this inside the initial configuration.
 process.env.JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
 process.env.SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 
@@ -18,22 +19,19 @@ jest.mock('../utils/logger', () => ({
   warn: jest.fn(),
   debug: jest.fn(),
   security: jest.fn(),
-  performance: jest.fn()
+  performance: jest.fn(),
 }));
 
 // Global test utilities
 global.testUtils = {
-  generateMockToken: () => {
-    const jwt = require('jsonwebtoken');
-    return jwt.sign(
-      {
-        userId: 'test-user-id',
-        email: 'test@example.com',
-        role: 'fleet_admin',
-        fleet_id: 'test-fleet-id'
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-  }
+  generateMockToken: () => jwt.sign(
+    {
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      role: 'fleet_admin',
+      fleet_id: 'test-fleet-id',
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' },
+  ),
 };

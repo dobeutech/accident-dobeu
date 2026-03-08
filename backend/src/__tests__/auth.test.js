@@ -3,14 +3,11 @@ const { app } = require('../server');
 const { sequelize } = require('../database/connection');
 
 describe('Authentication Endpoints', () => {
-  beforeAll(async () => {
-    // Ensure database connection
-    await sequelize.authenticate();
+  beforeEach(() => {
+    jest.clearAllMocks();
+    sequelize.query = jest.fn();
   });
-
-  afterAll(async () => {
-    await sequelize.close();
-  });
+  // No real DB connection needed
 
   describe('POST /api/auth/login', () => {
     it('should reject login without credentials', async () => {
@@ -27,7 +24,7 @@ describe('Authentication Endpoints', () => {
         .post('/api/auth/login')
         .send({
           email: 'invalid-email',
-          password: 'password123'
+          password: 'password123',
         })
         .expect(400);
 
@@ -38,7 +35,7 @@ describe('Authentication Endpoints', () => {
       const response = await request(app)
         .post('/api/auth/login')
         .send({
-          email: 'test@example.com'
+          email: 'test@example.com',
         })
         .expect(400);
 
@@ -46,11 +43,12 @@ describe('Authentication Endpoints', () => {
     });
 
     it('should return 401 for invalid credentials', async () => {
+      sequelize.query.mockResolvedValueOnce([[]]); // No user found
       const response = await request(app)
         .post('/api/auth/login')
         .send({
           email: 'nonexistent@example.com',
-          password: 'wrongpassword'
+          password: 'wrongpassword',
         })
         .expect(401);
 
@@ -60,15 +58,16 @@ describe('Authentication Endpoints', () => {
     it('should enforce rate limiting after multiple failed attempts', async () => {
       const credentials = {
         email: 'test@example.com',
-        password: 'wrongpassword'
+        password: 'wrongpassword',
       };
 
+      sequelize.query.mockResolvedValue([[]]); // Always fail login
       // Make 6 failed attempts (limit is 5)
-      for (let i = 0; i < 6; i++) {
-        await request(app)
+      await Promise.all(
+        Array.from({ length: 6 }).map(() => request(app)
           .post('/api/auth/login')
-          .send(credentials);
-      }
+          .send(credentials)),
+      );
 
       // 7th attempt should be rate limited
       const response = await request(app)
