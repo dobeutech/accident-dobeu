@@ -26,7 +26,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: '84de6cc00642b5d8138f22f6154cd078:d02fe22f174f5360662d7f761791c513',
         last_location_lat: 40.7128,
         last_location_lng: -74.0060,
       };
@@ -96,7 +96,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: '84de6cc00642b5d8138f22f6154cd078:d02fe22f174f5360662d7f761791c513',
         last_location_lat: 40.7128,
         last_location_lng: -74.0060,
       };
@@ -140,7 +140,7 @@ describe('TelematicsService', () => {
         provider_name: 'samsara',
         telematics_device_id: 'device-123',
         api_endpoint: 'https://api.samsara.com',
-        api_key_encrypted: 'encrypted_key',
+        api_key_encrypted: '84de6cc00642b5d8138f22f6154cd078:d02fe22f174f5360662d7f761791c513',
       };
 
       sequelize.query
