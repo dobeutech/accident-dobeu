@@ -1,5 +1,5 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import NetInfo from '@react-native-community/netinfo';
+import React, { createContext, useState, useContext } from 'react';
+import { useAutoSync } from '../hooks/useAutoSync';
 import { syncService } from '../services/syncService';
 
 const SyncContext = createContext();
@@ -16,22 +16,6 @@ export const SyncProvider = ({ children }) => {
   const [isOnline, setIsOnline] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [pendingSyncs, setPendingSyncs] = useState(0);
-
-  useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener(state => {
-      setIsOnline(state.isConnected && state.isInternetReachable);
-      
-      // Auto-sync when coming back online
-      if (state.isConnected && state.isInternetReachable) {
-        syncPendingItems();
-      }
-    });
-
-    // Check initial sync status
-    checkPendingSyncs();
-
-    return () => unsubscribe();
-  }, []);
 
   const checkPendingSyncs = async () => {
     try {
@@ -67,6 +51,12 @@ export const SyncProvider = ({ children }) => {
       throw error;
     }
   };
+
+  useAutoSync({
+    onOnline: syncPendingItems,
+    onInit: checkPendingSyncs,
+    setIsOnline
+  });
 
   const value = {
     isOnline,
