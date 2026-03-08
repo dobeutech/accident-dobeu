@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
@@ -57,10 +58,12 @@ export default function ReportsScreen() {
           await syncPendingItems();
         } catch (error) {
           console.error('Error syncing reports:', error);
+          Alert.alert('Sync Error', 'Failed to sync reports. Please try again later.');
         }
       }
     } catch (error) {
       console.error('Error loading reports:', error);
+      Alert.alert('Load Error', 'Failed to load reports. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
