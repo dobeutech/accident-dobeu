@@ -1,4 +1,5 @@
 import React from 'react';
+import { Picker } from '@react-native-picker/picker';
 import { View, Text, TextInput, StyleSheet, Switch } from 'react-native';
 
 export default function DynamicForm({ configs = [], data = {}, onChange }) {
@@ -79,19 +80,37 @@ export default function DynamicForm({ configs = [], data = {}, onChange }) {
         );
 
       case 'dropdown':
-        // Simplified - would need a proper picker component
+        let options = [];
+        if (Array.isArray(config.options)) {
+          options = config.options;
+        } else if (typeof config.options === 'string') {
+          try {
+            options = JSON.parse(config.options);
+          } catch (e) {
+            console.warn('Failed to parse options for dropdown', e);
+          }
+        }
+
         return (
           <View key={config.id} style={styles.field}>
             <Text style={styles.label}>
               {config.label}
               {config.is_required && <Text style={styles.required}> *</Text>}
             </Text>
-            <TextInput
-              style={styles.input}
-              value={String(value)}
-              onChangeText={(text) => handleChange(config.field_key, text)}
-              placeholder={config.placeholder || 'Select option'}
-            />
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={String(value)}
+                onValueChange={(itemValue) => handleChange(config.field_key, itemValue)}
+                style={styles.picker}
+              >
+                <Picker.Item label={config.placeholder || "Select option"} value="" />
+                {options.map((opt, index) => {
+                  const optLabel = typeof opt === 'object' ? opt.label : String(opt);
+                  const optValue = typeof opt === 'object' ? opt.value : String(opt);
+                  return <Picker.Item key={index.toString()} label={optLabel} value={optValue} />;
+                })}
+              </Picker>
+            </View>
           </View>
         );
 
@@ -180,6 +199,17 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center'
+  },
+  pickerContainer: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    overflow: 'hidden'
+  },
+  picker: {
+    height: 50,
+    width: '100%'
   }
 });
 
