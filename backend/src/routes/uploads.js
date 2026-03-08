@@ -45,10 +45,10 @@ router.post('/photos/:reportId', [
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    
+
     const { reportId } = req.params;
     const fleet_id = req.user.fleet_id;
-    
+
     // Verify report exists and belongs to fleet
     const [reports] = await sequelize.query(`
       SELECT id FROM accident_reports 
@@ -57,14 +57,14 @@ router.post('/photos/:reportId', [
       replacements: { report_id: reportId, fleet_id },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     if (!reports || reports.length === 0) {
       return res.status(404).json({ error: 'Report not found' });
     }
-    
+
     // Generate unique file key
     const fileKey = `fleet-${fleet_id}/reports/${reportId}/photos/${uuidv4()}-${req.file.originalname}`;
-    
+
     // Upload to S3
     const uploadParams = {
       Bucket: process.env.S3_BUCKET_NAME,
@@ -73,9 +73,9 @@ router.post('/photos/:reportId', [
       ContentType: req.file.mimetype,
       ACL: 'private'
     };
-    
+
     const s3Result = await s3.upload(uploadParams).promise();
-    
+
     // Get current max order_index
     const [maxOrder] = await sequelize.query(`
       SELECT COALESCE(MAX(order_index), 0) as max_order 
@@ -85,7 +85,7 @@ router.post('/photos/:reportId', [
       replacements: { report_id: reportId },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     // Save photo record
     const [result] = await sequelize.query(`
       INSERT INTO report_photos 
@@ -105,15 +105,15 @@ router.post('/photos/:reportId', [
       },
       type: sequelize.QueryTypes.INSERT
     });
-    
+
     const photo = result[0];
-    
-    logger.info(`Photo uploaded: ${fileKey}`, { 
-      photoId: photo.id, 
-      reportId, 
-      fleetId: fleet_id 
+
+    logger.info(`Photo uploaded: ${fileKey}`, {
+      photoId: photo.id,
+      reportId,
+      fleetId: fleet_id
     });
-    
+
     // Trigger AI image validation asynchronously
     imageValidationService.validateImage(photo.id, reportId, fleet_id, fileKey)
       .then(validation => {
@@ -122,7 +122,7 @@ router.post('/photos/:reportId', [
       .catch(error => {
         logger.error(`Image validation failed for photo ${photo.id}:`, error);
       });
-    
+
     res.status(201).json({ photo });
   } catch (error) {
     logger.error('Photo upload error:', error);
@@ -141,14 +141,14 @@ router.post('/audio/:reportId', [
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    
+
     if (!req.file.mimetype.startsWith('audio/')) {
       return res.status(400).json({ error: 'File must be an audio file' });
     }
-    
+
     const { reportId } = req.params;
     const fleet_id = req.user.fleet_id;
-    
+
     // Verify report exists
     const [reports] = await sequelize.query(`
       SELECT id FROM accident_reports 
@@ -157,14 +157,14 @@ router.post('/audio/:reportId', [
       replacements: { report_id: reportId, fleet_id },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     if (!reports || reports.length === 0) {
       return res.status(404).json({ error: 'Report not found' });
     }
-    
+
     // Generate unique file key
     const fileKey = `fleet-${fleet_id}/reports/${reportId}/audio/${uuidv4()}-${req.file.originalname}`;
-    
+
     // Upload to S3
     const uploadParams = {
       Bucket: process.env.S3_BUCKET_NAME,
@@ -173,9 +173,9 @@ router.post('/audio/:reportId', [
       ContentType: req.file.mimetype,
       ACL: 'private'
     };
-    
+
     const s3Result = await s3.upload(uploadParams).promise();
-    
+
     // Save audio record
     const [result] = await sequelize.query(`
       INSERT INTO report_audio 
@@ -194,15 +194,15 @@ router.post('/audio/:reportId', [
       },
       type: sequelize.QueryTypes.INSERT
     });
-    
+
     const audio = result[0];
-    
-    logger.info(`Audio uploaded: ${fileKey}`, { 
-      audioId: audio.id, 
-      reportId, 
-      fleetId: fleet_id 
+
+    logger.info(`Audio uploaded: ${fileKey}`, {
+      audioId: audio.id,
+      reportId,
+      fleetId: fleet_id
     });
-    
+
     res.status(201).json({ audio });
   } catch (error) {
     logger.error('Audio upload error:', error);
@@ -215,19 +215,19 @@ router.get('/signed-url/:fileKey', authenticate, enforceFleetContext, async (req
   try {
     const { fileKey } = req.params;
     const fleet_id = req.user.fleet_id;
-    
+
     // Verify file belongs to fleet
     if (!fileKey.startsWith(`fleet-${fleet_id}/`)) {
       return res.status(403).json({ error: 'Access denied' });
     }
-    
+
     // Generate signed URL (valid for 1 hour)
     const signedUrl = s3.getSignedUrl('getObject', {
       Bucket: process.env.S3_BUCKET_NAME,
       Key: fileKey,
       Expires: 3600
     });
-    
+
     res.json({ signed_url: signedUrl });
   } catch (error) {
     logger.error('Get signed URL error:', error);

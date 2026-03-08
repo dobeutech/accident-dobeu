@@ -85,10 +85,10 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Request validation and sanitization
-const { 
-  sanitizeParams, 
+const {
+  sanitizeParams,
   validateResponse,
-  validateBodySize 
+  validateBodySize
 } = require('./middleware/requestValidation');
 app.use(sanitizeParams);
 app.use(validateResponse);
@@ -186,10 +186,10 @@ const PORT = process.env.PORT || 3000;
 // Graceful shutdown handler
 const gracefulShutdown = (signal) => {
   logger.info(`${signal} received, starting graceful shutdown...`);
-  
+
   httpServer.close(() => {
     logger.info('HTTP server closed');
-    
+
     // Close database connections
     const { sequelize } = require('./database/connection');
     sequelize.close().then(() => {
@@ -227,7 +227,7 @@ httpServer.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`Process ID: ${process.pid}`);
-  
+
   // Send ready signal to PM2
   if (process.send) {
     process.send('ready');
@@ -244,4 +244,3 @@ setInterval(async () => {
 }, 60000);
 
 module.exports = { app, io };
-

@@ -165,7 +165,7 @@ const getAnalyticsSummary = () => {
  */
 const getUserAnalytics = (userId) => {
   const userData = analyticsData.users.get(userId);
-  
+
   if (!userData) {
     return null;
   }
@@ -211,7 +211,7 @@ const cleanupOldData = () => {
   }
 
   // Remove old events
-  analyticsData.events = analyticsData.events.filter(e => 
+  analyticsData.events = analyticsData.events.filter(e =>
     new Date(e.timestamp).getTime() > sevenDaysAgo
   );
 

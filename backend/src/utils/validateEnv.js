@@ -124,18 +124,18 @@ function validateEnvironment() {
  */
 async function validateDatabase() {
   const { sequelize } = require('../database/connection');
-  
+
   try {
     await sequelize.authenticate();
     logger.info('Database connection validated');
-    
+
     // Check if migrations are up to date
     const [tables] = await sequelize.query(`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public'
     `);
-    
+
     const requiredTables = [
       'fleets',
       'users',
@@ -143,16 +143,16 @@ async function validateDatabase() {
       'accident_reports',
       'fleet_form_configs'
     ];
-    
+
     const existingTables = tables.map(t => t.table_name);
     const missingTables = requiredTables.filter(t => !existingTables.includes(t));
-    
+
     if (missingTables.length > 0) {
       logger.error('Missing required database tables:', missingTables);
       logger.error('Please run database migrations: npm run migrate');
       return false;
     }
-    
+
     logger.info('Database schema validated');
     return true;
   } catch (error) {
@@ -192,7 +192,7 @@ async function validateS3() {
  */
 async function runStartupValidation() {
   logger.info('Running startup validation...');
-  
+
   const envValid = validateEnvironment();
   if (!envValid) {
     logger.error('Startup validation failed: Invalid environment configuration');

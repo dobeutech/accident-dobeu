@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
  */
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
-  
+
   if (!errors.isEmpty()) {
     const errorDetails = errors.array().map(err => ({
       field: err.param,
@@ -36,7 +36,7 @@ const handleValidationErrors = (req, res, next) => {
 const validateBodySize = (maxSize = 10 * 1024 * 1024) => {
   return (req, res, next) => {
     const contentLength = parseInt(req.get('content-length') || '0');
-    
+
     if (contentLength > maxSize) {
       logger.security('Request body too large', {
         path: req.path,
@@ -44,13 +44,13 @@ const validateBodySize = (maxSize = 10 * 1024 * 1024) => {
         maxSize,
         ip: req.ip
       });
-      
+
       return res.status(413).json({
         error: 'Request body too large',
         maxSize: `${maxSize / 1024 / 1024}MB`
       });
     }
-    
+
     next();
   };
 };
@@ -66,14 +66,14 @@ const validateContentType = (allowedTypes = ['application/json']) => {
     }
 
     const contentType = req.get('content-type');
-    
+
     if (!contentType) {
       return res.status(400).json({
         error: 'Content-Type header required'
       });
     }
 
-    const isAllowed = allowedTypes.some(type => 
+    const isAllowed = allowedTypes.some(type =>
       contentType.toLowerCase().includes(type.toLowerCase())
     );
 
@@ -199,7 +199,7 @@ const validateDateRange = (req, res, next) => {
 const validateResponse = (req, res, next) => {
   const originalJson = res.json;
 
-  res.json = function(data) {
+  res.json = function validateJson(data) {
     // Ensure response has consistent structure
     if (data && typeof data === 'object' && !Array.isArray(data)) {
       // Add metadata if not present
@@ -219,7 +219,7 @@ const validateResponse = (req, res, next) => {
         delete sanitized.password;
         delete sanitized.secret;
         delete sanitized.token;
-        
+
         for (const key in sanitized) {
           sanitized[key] = sanitizeResponse(sanitized[key]);
         }
