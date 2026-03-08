@@ -26,7 +26,12 @@ describe('ImageValidationService', () => {
       detectText: jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({
           TextDetections: [
-            { Type: 'LINE', DetectedText: 'ABC1234', Confidence: 96.2, Geometry: { BoundingBox: { Top: 0.1 } } },
+            {
+              Type: 'LINE',
+              DetectedText: 'ABC1234',
+              Confidence: 96.2,
+              Geometry: { BoundingBox: { Top: 0.1 } },
+            },
           ],
         }),
       }),
@@ -160,9 +165,7 @@ describe('ImageValidationService', () => {
     it('should flag inappropriate content', async () => {
       mockRekognition.detectModerationLabels = jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({
-          ModerationLabels: [
-            { Name: 'Explicit Content', Confidence: 95, ParentName: 'Explicit' },
-          ],
+          ModerationLabels: [{ Name: 'Explicit Content', Confidence: 95, ParentName: 'Explicit' }],
         }),
       });
 

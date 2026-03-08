@@ -34,50 +34,55 @@ class SyncService {
     );
     
     let synced = 0;
+    const chunkSize = 5;
     
-    for (const item of pending) {
-      try {
-        await db.runAsync(
-          'UPDATE sync_queue SET status = ? WHERE id = ?',
-          ['processing', item.id]
-        );
-        
-        const payload = JSON.parse(item.payload);
-        
-        switch (item.entity_type) {
-          case 'report':
-            await this.syncReport(item.operation, payload);
-            break;
-          case 'photo':
-            await this.syncPhoto(item.operation, payload);
-            break;
-          case 'audio':
-            await this.syncAudio(item.operation, payload);
-            break;
+    for (let i = 0; i < pending.length; i += chunkSize) {
+      const chunk = pending.slice(i, i + chunkSize);
+
+      await Promise.all(chunk.map(async (item) => {
+        try {
+          await db.runAsync(
+            'UPDATE sync_queue SET status = ? WHERE id = ?',
+            ['processing', item.id]
+          );
+
+          const payload = JSON.parse(item.payload);
+
+          switch (item.entity_type) {
+            case 'report':
+              await this.syncReport(item.operation, payload);
+              break;
+            case 'photo':
+              await this.syncPhoto(item.operation, payload);
+              break;
+            case 'audio':
+              await this.syncAudio(item.operation, payload);
+              break;
+          }
+
+          await db.runAsync(
+            'UPDATE sync_queue SET status = ?, processed_at = datetime("now") WHERE id = ?',
+            ['completed', item.id]
+          );
+
+          synced++;
+        } catch (error) {
+          console.error(`Sync error for ${item.id}:`, error);
+          const retryCount = (item.retry_count || 0) + 1;
+
+          await db.runAsync(
+            `UPDATE sync_queue
+             SET status = ?, retry_count = ?, error_message = ?
+             WHERE id = ?`,
+            [
+              retryCount >= 3 ? 'failed' : 'pending',
+              retryCount,
+              error.message,
+              item.id
+            ]
+          );
         }
-        
-        await db.runAsync(
-          'UPDATE sync_queue SET status = ?, processed_at = datetime("now") WHERE id = ?',
-          ['completed', item.id]
-        );
-        
-        synced++;
-      } catch (error) {
-        console.error(`Sync error for ${item.id}:`, error);
-        const retryCount = (item.retry_count || 0) + 1;
-        
-        await db.runAsync(
-          `UPDATE sync_queue 
-           SET status = ?, retry_count = ?, error_message = ? 
-           WHERE id = ?`,
-          [
-            retryCount >= 3 ? 'failed' : 'pending',
-            retryCount,
-            error.message,
-            item.id
-          ]
-        );
-      }
+      }));
     }
     
     return synced;

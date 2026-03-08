@@ -28,7 +28,7 @@ describe('TelematicsService', () => {
         api_endpoint: 'https://api.samsara.com',
         api_key_encrypted: 'encrypted_key',
         last_location_lat: 40.7128,
-        last_location_lng: -74.0060,
+        last_location_lng: -74.006,
       };
 
       // Mock database queries
@@ -40,12 +40,7 @@ describe('TelematicsService', () => {
       // Mock API call
       axios.post.mockResolvedValueOnce({ data: { success: true } });
 
-      const result = await telematicsService.engageKillSwitch(
-        vehicleId,
-        reportId,
-        userId,
-        reason
-      );
+      const result = await telematicsService.engageKillSwitch(vehicleId, reportId, userId, reason);
 
       expect(result.success).toBe(true);
       expect(result.status).toBe('engaged');
@@ -60,9 +55,9 @@ describe('TelematicsService', () => {
 
       sequelize.query.mockResolvedValueOnce([[]]);
 
-      await expect(
-        telematicsService.engageKillSwitch(vehicleId, reportId, userId)
-      ).rejects.toThrow('Vehicle not found or kill switch not enabled');
+      await expect(telematicsService.engageKillSwitch(vehicleId, reportId, userId)).rejects.toThrow(
+        'Vehicle not found or kill switch not enabled'
+      );
     });
 
     it('should throw error if kill switch not enabled', async () => {
@@ -77,9 +72,9 @@ describe('TelematicsService', () => {
 
       sequelize.query.mockResolvedValueOnce([[mockVehicle]]);
 
-      await expect(
-        telematicsService.engageKillSwitch(vehicleId, reportId, userId)
-      ).rejects.toThrow('Vehicle not found or kill switch not enabled');
+      await expect(telematicsService.engageKillSwitch(vehicleId, reportId, userId)).rejects.toThrow(
+        'Vehicle not found or kill switch not enabled'
+      );
     });
   });
 
@@ -98,7 +93,7 @@ describe('TelematicsService', () => {
         api_endpoint: 'https://api.samsara.com',
         api_key_encrypted: 'encrypted_key',
         last_location_lat: 40.7128,
-        last_location_lng: -74.0060,
+        last_location_lng: -74.006,
       };
 
       sequelize.query
@@ -232,7 +227,7 @@ describe('TelematicsService', () => {
     it('should update vehicle location', async () => {
       const vehicleId = 'vehicle-uuid';
       const lat = 40.7128;
-      const lng = -74.0060;
+      const lng = -74.006;
 
       sequelize.query.mockResolvedValueOnce([]);
 
@@ -312,7 +307,7 @@ describe('TelematicsService', () => {
       const userId = 'user-uuid';
       const reason = 'Test reason';
       const lat = 40.7128;
-      const lng = -74.0060;
+      const lng = -74.006;
 
       sequelize.query.mockResolvedValueOnce([]);
 

@@ -6,7 +6,8 @@ const options = {
     info: {
       title: 'Fleet Accident Reporting System API',
       version: '2.1.0',
-      description: 'Comprehensive API for fleet accident reporting with telematics integration, kill switch functionality, and AI-powered image validation',
+      description:
+        'Comprehensive API for fleet accident reporting with telematics integration, kill switch functionality, and AI-powered image validation',
       contact: {
         name: 'API Support',
         email: 'support@example.com',

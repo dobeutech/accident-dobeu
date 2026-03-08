@@ -25,40 +25,44 @@ const io = new Server(httpServer, {
   cors: {
     origin: process.env.CORS_ORIGIN?.split(',') || '*',
     methods: ['GET', 'POST'],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 // Middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"]
-    }
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  },
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  noSniff: true,
-  xssFilter: true,
-  hidePoweredBy: true
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    noSniff: true,
+    xssFilter: true,
+    hidePoweredBy: true,
+  })
+);
 app.use(compression());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || '*',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN?.split(',') || '*',
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
@@ -66,7 +70,11 @@ app.use(cookieParser());
 // CSRF protection (exclude auth routes and health check)
 const csrfProtection = csrf({ cookie: true });
 app.use((req, res, next) => {
-  if (req.path === '/health' || req.path.startsWith('/api/auth/login') || req.path.startsWith('/api/auth/register')) {
+  if (
+    req.path === '/health' ||
+    req.path.startsWith('/api/auth/login') ||
+    req.path.startsWith('/api/auth/register')
+  ) {
     return next();
   }
   csrfProtection(req, res, next);
@@ -80,15 +88,15 @@ app.get('/api/csrf-token', csrfProtection, (req, res) => {
 // Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
 });
 app.use('/api/', limiter);
 
 // Request validation and sanitization
-const { 
-  sanitizeParams, 
+const {
+  sanitizeParams,
   validateResponse,
-  validateBodySize 
+  validateBodySize,
 } = require('./middleware/requestValidation');
 app.use(sanitizeParams);
 app.use(validateResponse);
@@ -103,10 +111,14 @@ app.use((req, res, next) => {
 });
 
 // API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Fleet Accident Reporting API',
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Fleet Accident Reporting API',
+  })
+);
 
 // OpenAPI JSON spec
 app.get('/api/openapi.json', (req, res) => {
@@ -115,10 +127,12 @@ app.get('/api/openapi.json', (req, res) => {
 });
 
 // Static file serving with cache headers
-app.use(express.static('public', {
-  maxAge: '1d',
-  etag: true
-}));
+app.use(
+  express.static('public', {
+    maxAge: '1d',
+    etag: true,
+  })
+);
 
 // Ping endpoint for uptime monitoring
 app.get('/ping', (req, res) => {
@@ -155,7 +169,7 @@ app.use((err, req, res, next) => {
   logger.error('Error:', err);
   res.status(err.status || 500).json({
     error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 });
 
@@ -166,7 +180,14 @@ const frontendBuildPath = path.join(__dirname, '../../web/dist');
 const frontendIndexPath = path.join(frontendBuildPath, 'index.html');
 app.use(express.static(frontendBuildPath, { maxAge: '7d', etag: true }));
 app.use((req, res, next) => {
-  if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.startsWith('/health') || req.path === '/ping' || req.path.startsWith('/socket.io') || req.path.startsWith('/api-docs')) {
+  if (
+    req.method !== 'GET' ||
+    req.path.startsWith('/api') ||
+    req.path.startsWith('/health') ||
+    req.path === '/ping' ||
+    req.path.startsWith('/socket.io') ||
+    req.path.startsWith('/api-docs')
+  ) {
     return next();
   }
   if (fs.existsSync(frontendIndexPath)) {
@@ -184,21 +205,24 @@ const { sequelize } = require('./database/connection');
 const PORT = process.env.PORT || 3000;
 
 // Graceful shutdown handler
-const gracefulShutdown = (signal) => {
+const gracefulShutdown = signal => {
   logger.info(`${signal} received, starting graceful shutdown...`);
-  
+
   httpServer.close(() => {
     logger.info('HTTP server closed');
-    
+
     // Close database connections
     const { sequelize } = require('./database/connection');
-    sequelize.close().then(() => {
-      logger.info('Database connections closed');
-      process.exit(0);
-    }).catch(err => {
-      logger.error('Error closing database:', err);
-      process.exit(1);
-    });
+    sequelize
+      .close()
+      .then(() => {
+        logger.info('Database connections closed');
+        process.exit(0);
+      })
+      .catch(err => {
+        logger.error('Error closing database:', err);
+        process.exit(1);
+      });
   });
 
   // Force shutdown after 30 seconds
@@ -213,7 +237,7 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   logger.error('Uncaught Exception:', error);
   gracefulShutdown('uncaughtException');
 });
@@ -227,7 +251,7 @@ httpServer.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`Process ID: ${process.pid}`);
-  
+
   // Send ready signal to PM2
   if (process.send) {
     process.send('ready');
@@ -244,4 +268,3 @@ setInterval(async () => {
 }, 60000);
 
 module.exports = { app, io };
-

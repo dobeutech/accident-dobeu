@@ -3,12 +3,14 @@ const logger = require('../utils/logger');
 
 const socketAuth = async (socket, next) => {
   try {
-    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
-    
+    const token =
+      socket.handshake.auth?.token ||
+      socket.handshake.headers?.authorization?.replace('Bearer ', '');
+
     if (!token) {
       return next(new Error('Authentication error: No token provided'));
     }
-    
+
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       socket.user = decoded;
@@ -25,4 +27,3 @@ const socketAuth = async (socket, next) => {
 };
 
 module.exports = socketAuth;
-

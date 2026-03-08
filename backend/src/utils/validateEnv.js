@@ -9,8 +9,10 @@ function applyReplitEnvMappings() {
   if (!process.env.DB_PORT && process.env.PGPORT) process.env.DB_PORT = process.env.PGPORT;
   if (!process.env.DB_NAME && process.env.PGDATABASE) process.env.DB_NAME = process.env.PGDATABASE;
   if (!process.env.DB_USER && process.env.PGUSER) process.env.DB_USER = process.env.PGUSER;
-  if (!process.env.DB_PASSWORD && process.env.PGPASSWORD) process.env.DB_PASSWORD = process.env.PGPASSWORD;
-  if (!process.env.JWT_SECRET && process.env.SESSION_SECRET) process.env.JWT_SECRET = process.env.SESSION_SECRET;
+  if (!process.env.DB_PASSWORD && process.env.PGPASSWORD)
+    process.env.DB_PASSWORD = process.env.PGPASSWORD;
+  if (!process.env.JWT_SECRET && process.env.SESSION_SECRET)
+    process.env.JWT_SECRET = process.env.SESSION_SECRET;
 }
 
 /**
@@ -32,7 +34,7 @@ function validateEnvironment() {
     DB_USER: process.env.DB_USER,
     DB_PASSWORD: process.env.DB_PASSWORD,
     JWT_SECRET: process.env.JWT_SECRET,
-    SESSION_SECRET: process.env.SESSION_SECRET
+    SESSION_SECRET: process.env.SESSION_SECRET,
   };
 
   // Check required variables
@@ -94,7 +96,7 @@ function validateEnvironment() {
   const recommended = {
     LOG_LEVEL: process.env.LOG_LEVEL,
     RATE_LIMIT_WINDOW_MS: process.env.RATE_LIMIT_WINDOW_MS,
-    RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS
+    RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS,
   };
 
   for (const [key, value] of Object.entries(recommended)) {
@@ -124,35 +126,35 @@ function validateEnvironment() {
  */
 async function validateDatabase() {
   const { sequelize } = require('../database/connection');
-  
+
   try {
     await sequelize.authenticate();
     logger.info('Database connection validated');
-    
+
     // Check if migrations are up to date
     const [tables] = await sequelize.query(`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public'
     `);
-    
+
     const requiredTables = [
       'fleets',
       'users',
       'permissions',
       'accident_reports',
-      'fleet_form_configs'
+      'fleet_form_configs',
     ];
-    
+
     const existingTables = tables.map(t => t.table_name);
     const missingTables = requiredTables.filter(t => !existingTables.includes(t));
-    
+
     if (missingTables.length > 0) {
       logger.error('Missing required database tables:', missingTables);
       logger.error('Please run database migrations: npm run migrate');
       return false;
     }
-    
+
     logger.info('Database schema validated');
     return true;
   } catch (error) {
@@ -175,7 +177,7 @@ async function validateS3() {
     const s3 = new AWS.S3({
       region: process.env.AWS_REGION,
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     });
 
     await s3.headBucket({ Bucket: process.env.AWS_S3_BUCKET }).promise();
@@ -192,7 +194,7 @@ async function validateS3() {
  */
 async function runStartupValidation() {
   logger.info('Running startup validation...');
-  
+
   const envValid = validateEnvironment();
   if (!envValid) {
     logger.error('Startup validation failed: Invalid environment configuration');
@@ -219,5 +221,5 @@ module.exports = {
   validateEnvironment,
   validateDatabase,
   validateS3,
-  runStartupValidation
+  runStartupValidation,
 };

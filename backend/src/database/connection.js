@@ -6,7 +6,8 @@ if (!process.env.DB_HOST && process.env.PGHOST) process.env.DB_HOST = process.en
 if (!process.env.DB_PORT && process.env.PGPORT) process.env.DB_PORT = process.env.PGPORT;
 if (!process.env.DB_NAME && process.env.PGDATABASE) process.env.DB_NAME = process.env.PGDATABASE;
 if (!process.env.DB_USER && process.env.PGUSER) process.env.DB_USER = process.env.PGUSER;
-if (!process.env.DB_PASSWORD && process.env.PGPASSWORD) process.env.DB_PASSWORD = process.env.PGPASSWORD;
+if (!process.env.DB_PASSWORD && process.env.PGPASSWORD)
+  process.env.DB_PASSWORD = process.env.PGPASSWORD;
 
 // Production-ready connection pool configuration
 const poolConfig = {
@@ -15,52 +16,48 @@ const poolConfig = {
   acquire: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 30000,
   idle: parseInt(process.env.DB_IDLE_TIMEOUT) || 10000,
   evict: 1000, // Check for idle connections every second
-  maxUses: 1000 // Close connection after 1000 uses to prevent memory leaks
+  maxUses: 1000, // Close connection after 1000 uses to prevent memory leaks
 };
 
 // SSL configuration for production
-const dialectOptions = process.env.NODE_ENV === 'production' ? {
-  ssl: {
-    require: true,
-    rejectUnauthorized: false
-  },
-  keepAlive: true,
-  statement_timeout: 30000, // 30 seconds
-  idle_in_transaction_session_timeout: 60000 // 60 seconds
-} : {
-  keepAlive: true
-};
+const dialectOptions =
+  process.env.NODE_ENV === 'production'
+    ? {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+        keepAlive: true,
+        statement_timeout: 30000, // 30 seconds
+        idle_in_transaction_session_timeout: 60000, // 60 seconds
+      }
+    : {
+        keepAlive: true,
+      };
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 5432,
-    dialect: 'postgres',
-    logging: process.env.NODE_ENV === 'production' 
-      ? false 
-      : (msg) => logger.debug(msg),
-    pool: poolConfig,
-    dialectOptions,
-    retry: {
-      max: 3,
-      timeout: 3000,
-      match: [
-        /SequelizeConnectionError/,
-        /SequelizeConnectionRefusedError/,
-        /SequelizeHostNotFoundError/,
-        /SequelizeHostNotReachableError/,
-        /SequelizeInvalidConnectionError/,
-        /SequelizeConnectionTimedOutError/,
-        /TimeoutError/
-      ]
-    },
-    benchmark: process.env.NODE_ENV !== 'production',
-    logQueryParameters: process.env.NODE_ENV !== 'production'
-  }
-);
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT || 5432,
+  dialect: 'postgres',
+  logging: process.env.NODE_ENV === 'production' ? false : msg => logger.debug(msg),
+  pool: poolConfig,
+  dialectOptions,
+  retry: {
+    max: 3,
+    timeout: 3000,
+    match: [
+      /SequelizeConnectionError/,
+      /SequelizeConnectionRefusedError/,
+      /SequelizeHostNotFoundError/,
+      /SequelizeHostNotReachableError/,
+      /SequelizeInvalidConnectionError/,
+      /SequelizeConnectionTimedOutError/,
+      /TimeoutError/,
+    ],
+  },
+  benchmark: process.env.NODE_ENV !== 'production',
+  logQueryParameters: process.env.NODE_ENV !== 'production',
+});
 
 // Monitor pool health
 if (process.env.NODE_ENV === 'production') {
@@ -70,7 +67,7 @@ if (process.env.NODE_ENV === 'production') {
       size: pool.size,
       available: pool.available,
       using: pool.using,
-      waiting: pool.waiting
+      waiting: pool.waiting,
     });
   }, 60000); // Log every minute
 }
@@ -88,10 +85,12 @@ const testConnection = async () => {
 
 // Setup query monitoring in production
 if (process.env.NODE_ENV === 'production') {
-  const { setupQueryMonitoring, startPeriodicMonitoring } = require('../middleware/queryMonitoring');
+  const {
+    setupQueryMonitoring,
+    startPeriodicMonitoring,
+  } = require('../middleware/queryMonitoring');
   setupQueryMonitoring(sequelize);
   startPeriodicMonitoring(sequelize, 5 * 60 * 1000); // Every 5 minutes
 }
 
 module.exports = { sequelize, testConnection };
-
