@@ -497,23 +497,21 @@ class ImageValidationService {
    * Batch validate multiple images
    */
   async batchValidateImages(photos) {
-    const results = [];
-    
-    for (const photo of photos) {
-      try {
-        const result = await this.validateImage(
-          photo.id,
-          photo.report_id,
-          photo.fleet_id,
-          photo.file_key
-        );
-        results.push({ photoId: photo.id, success: true, result });
-      } catch (error) {
-        results.push({ photoId: photo.id, success: false, error: error.message });
-      }
-    }
-
-    return results;
+    return Promise.all(
+      photos.map(async (photo) => {
+        try {
+          const result = await this.validateImage(
+            photo.id,
+            photo.report_id,
+            photo.fleet_id,
+            photo.file_key
+          );
+          return { photoId: photo.id, success: true, result };
+        } catch (error) {
+          return { photoId: photo.id, success: false, error: error.message };
+        }
+      })
+    );
   }
 
   /**
