@@ -12,6 +12,7 @@ describe('ImageValidationService', () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
+    process.env.AWS_S3_BUCKET = 'test-bucket';
 
     // Mock Rekognition
     mockRekognition = {
@@ -59,6 +60,10 @@ describe('ImageValidationService', () => {
 
     AWS.Rekognition.mockImplementation(() => mockRekognition);
     AWS.S3.mockImplementation(() => mockS3);
+
+    // Assign mocks to service instance
+    imageValidationService.rekognition = mockRekognition;
+    imageValidationService.s3 = mockS3;
 
     // Mock sequelize
     sequelize.query = jest.fn();
@@ -193,11 +198,16 @@ describe('ImageValidationService', () => {
         { id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg' },
       ];
 
-      sequelize.query
-        .mockResolvedValueOnce([[{ id: 'validation-1' }]])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([[{ id: 'validation-2' }]])
-        .mockResolvedValueOnce([]);
+      // Each validateImage call has INSERT and UPDATE
+      sequelize.query.mockImplementation((sql) => {
+        if (sql.includes('INSERT INTO image_validations')) {
+          return Promise.resolve([[{ id: 'validation-uuid' }]]);
+        }
+        if (sql.includes('UPDATE image_validations')) {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve([]);
+      });
 
       const results = await imageValidationService.batchValidateImages(photos);
 
@@ -212,10 +222,20 @@ describe('ImageValidationService', () => {
         { id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg' },
       ];
 
-      sequelize.query
-        .mockResolvedValueOnce([[{ id: 'validation-1' }]])
-        .mockResolvedValueOnce([])
-        .mockRejectedValueOnce(new Error('Validation failed'));
+      let callCount = 0;
+      sequelize.query.mockImplementation((sql) => {
+        if (sql.includes('INSERT INTO image_validations')) {
+          callCount++;
+          if (callCount === 2) {
+            return Promise.reject(new Error('Validation failed'));
+          }
+          return Promise.resolve([[{ id: 'validation-uuid' }]]);
+        }
+        if (sql.includes('UPDATE image_validations')) {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve([]);
+      });
 
       const results = await imageValidationService.batchValidateImages(photos);
 
