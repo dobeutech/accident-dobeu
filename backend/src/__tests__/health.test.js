@@ -1,7 +1,13 @@
 const request = require('supertest');
 const { app } = require('../server');
+const { sequelize } = require('../database/connection');
 
 describe('Health Check Endpoints', () => {
+  beforeAll(() => {
+    sequelize.authenticate = jest.fn().mockResolvedValue();
+    sequelize.query = jest.fn().mockResolvedValue([[{ version: '14.0' }]]);
+  });
+
   describe('GET /health', () => {
     it('should return 200 and basic health status', async () => {
       const response = await request(app)
