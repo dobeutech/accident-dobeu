@@ -14,7 +14,8 @@ describe('Authentication Endpoints', () => {
 
   describe('POST /api/auth/login', () => {
     it('should reject login without credentials', async () => {
-      const response = await request(app)
+      const response = // eslint-disable-next-line no-await-in-loop
+        await request(app)
         .post('/api/auth/login')
         .send({})
         .expect(400);
@@ -27,7 +28,7 @@ describe('Authentication Endpoints', () => {
         .post('/api/auth/login')
         .send({
           email: 'invalid-email',
-          password: 'password123'
+          password: 'password123',
         })
         .expect(400);
 
@@ -38,7 +39,7 @@ describe('Authentication Endpoints', () => {
       const response = await request(app)
         .post('/api/auth/login')
         .send({
-          email: 'test@example.com'
+          email: 'test@example.com',
         })
         .expect(400);
 
@@ -50,7 +51,7 @@ describe('Authentication Endpoints', () => {
         .post('/api/auth/login')
         .send({
           email: 'nonexistent@example.com',
-          password: 'wrongpassword'
+          password: 'wrongpassword',
         })
         .expect(401);
 
@@ -64,7 +65,7 @@ describe('Authentication Endpoints', () => {
       };
 
       // Make 6 failed attempts (limit is 5)
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 6; i += 1) {
         await request(app)
           .post('/api/auth/login')
           .send(credentials);
