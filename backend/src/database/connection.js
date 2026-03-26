@@ -39,8 +39,8 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
-    logging: process.env.NODE_ENV === 'production' 
-      ? false 
+    logging: process.env.NODE_ENV === 'production'
+      ? false
       : (msg) => logger.debug(msg),
     pool: poolConfig,
     dialectOptions,
@@ -94,4 +94,3 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 module.exports = { sequelize, testConnection };
-

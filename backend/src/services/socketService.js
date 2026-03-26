@@ -2,16 +2,16 @@ const logger = require('../utils/logger');
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
-    logger.info(`Socket connected: ${socket.id}`, { 
-      userId: socket.user?.userId, 
-      fleetId: socket.fleetId 
+    logger.info(`Socket connected: ${socket.id}`, {
+      userId: socket.user?.userId,
+      fleetId: socket.fleetId
     });
-    
+
     // Join fleet room for real-time updates
     if (socket.fleetId) {
       socket.join(`fleet:${socket.fleetId}`);
     }
-    
+
     // Handle report photo upload (real-time)
     socket.on('report:photo:uploaded', (data) => {
       const { reportId, photoUrl } = data;
@@ -22,7 +22,7 @@ module.exports = (io) => {
         timestamp: new Date().toISOString()
       });
     });
-    
+
     // Handle report started notification
     socket.on('report:started', (data) => {
       const { reportId } = data;
@@ -33,7 +33,7 @@ module.exports = (io) => {
         timestamp: new Date().toISOString()
       });
     });
-    
+
     // Handle report status update
     socket.on('report:status:updated', (data) => {
       const { reportId, status } = data;
@@ -43,10 +43,9 @@ module.exports = (io) => {
         timestamp: new Date().toISOString()
       });
     });
-    
+
     socket.on('disconnect', () => {
       logger.info(`Socket disconnected: ${socket.id}`);
     });
   });
 };
-

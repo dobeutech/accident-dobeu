@@ -14,41 +14,41 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
     const { status, incident_type, driver_id, start_date, end_date, page = 1, limit = 20 } = req.query;
     const fleet_id = req.user.fleet_id;
     const offset = (page - 1) * limit;
-    
+
     let whereClause = 'WHERE r.fleet_id = :fleet_id';
     const replacements = { fleet_id, limit: parseInt(limit), offset: parseInt(offset) };
-    
+
     if (status) {
       whereClause += ' AND r.status = :status';
       replacements.status = status;
     }
-    
+
     if (incident_type) {
       whereClause += ' AND r.incident_type = :incident_type';
       replacements.incident_type = incident_type;
     }
-    
+
     if (driver_id) {
       whereClause += ' AND r.driver_id = :driver_id';
       replacements.driver_id = driver_id;
     }
-    
+
     if (start_date) {
       whereClause += ' AND r.incident_date >= :start_date';
       replacements.start_date = start_date;
     }
-    
+
     if (end_date) {
       whereClause += ' AND r.incident_date <= :end_date';
       replacements.end_date = end_date;
     }
-    
+
     // Drivers can only see their own reports
     if (req.user.role === 'driver') {
       whereClause += ' AND r.driver_id = :user_id';
       replacements.user_id = req.user.userId;
     }
-    
+
     const [reports] = await sequelize.query(`
       SELECT r.*, 
              u.first_name || ' ' || u.last_name as driver_name,
@@ -67,7 +67,7 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
       replacements,
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     const [countResult] = await sequelize.query(`
       SELECT COUNT(*) as total
       FROM accident_reports r
@@ -76,7 +76,7 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
       replacements: { ...replacements, limit: undefined, offset: undefined },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     res.json({
       reports,
       pagination: {
@@ -97,16 +97,16 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
   try {
     const { id } = req.params;
     const fleet_id = req.user.fleet_id;
-    
+
     let whereClause = 'WHERE r.id = :id AND r.fleet_id = :fleet_id';
     const replacements = { id, fleet_id };
-    
+
     // Drivers can only see their own reports
     if (req.user.role === 'driver') {
       whereClause += ' AND r.driver_id = :user_id';
       replacements.user_id = req.user.userId;
     }
-    
+
     const [reports] = await sequelize.query(`
       SELECT r.*, 
              u.first_name || ' ' || u.last_name as driver_name,
@@ -119,13 +119,13 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
       replacements,
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     if (!reports || reports.length === 0) {
       return res.status(404).json({ error: 'Report not found' });
     }
-    
+
     const report = reports[0];
-    
+
     // Get photos
     const [photos] = await sequelize.query(`
       SELECT * FROM report_photos 
@@ -135,7 +135,7 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
       replacements: { id },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     // Get audio
     const [audio] = await sequelize.query(`
       SELECT * FROM report_audio 
@@ -145,7 +145,7 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
       replacements: { id },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     res.json({
       report: {
         ...report,
@@ -176,14 +176,14 @@ router.post('/', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    
+
     const { incident_type, incident_date, latitude, longitude, address, custom_fields } = req.body;
     const fleet_id = req.user.fleet_id;
     const driver_id = req.user.role === 'driver' ? req.user.userId : req.body.driver_id;
-    
+
     // Generate report number
     const report_number = `RPT-${Date.now()}-${uuidv4().substring(0, 8).toUpperCase()}`;
-    
+
     const [result] = await sequelize.query(`
       INSERT INTO accident_reports 
         (fleet_id, driver_id, report_number, incident_type, incident_date, 
@@ -206,15 +206,15 @@ router.post('/', [
       },
       type: sequelize.QueryTypes.INSERT
     });
-    
+
     const report = result[0];
-    
-    logger.info(`Report created: ${report_number}`, { 
-      reportId: report.id, 
+
+    logger.info(`Report created: ${report_number}`, {
+      reportId: report.id,
       fleetId: fleet_id,
-      createdBy: req.user.userId 
+      createdBy: req.user.userId
     });
-    
+
     res.status(201).json({ report });
   } catch (error) {
     logger.error('Create report error:', error);
@@ -236,13 +236,13 @@ router.put('/:id', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    
+
     const { id } = req.params;
     const fleet_id = req.user.fleet_id;
-    
+
     const updates = {};
     const allowedFields = ['status', 'incident_type', 'incident_date', 'latitude', 'longitude', 'address', 'custom_fields'];
-    
+
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         if (field === 'custom_fields') {
@@ -252,14 +252,14 @@ router.put('/:id', [
         }
       }
     });
-    
+
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: 'No valid fields to update' });
     }
-    
+
     updates.updated_at = new Date();
-    
-    const setClause = Object.keys(updates).map(key => `${key} = :${key}`).join(', ');
+
+    const setClause = Object.keys(updates).map(key => `"${key}" = :${key}`).join(', ');
     const [result] = await sequelize.query(`
       UPDATE accident_reports 
       SET ${setClause}
@@ -269,13 +269,13 @@ router.put('/:id', [
       replacements: { id, fleet_id, ...updates },
       type: sequelize.QueryTypes.UPDATE
     });
-    
+
     if (!result || result.length === 0) {
       return res.status(404).json({ error: 'Report not found' });
     }
-    
+
     logger.info(`Report updated: ${id}`, { updatedBy: req.user.userId });
-    
+
     res.json({ report: result[0] });
   } catch (error) {
     logger.error('Update report error:', error);
@@ -288,7 +288,7 @@ router.delete('/:id', authenticate, requirePermission('reports', 'delete'), enfo
   try {
     const { id } = req.params;
     const fleet_id = req.user.fleet_id;
-    
+
     const [result] = await sequelize.query(`
       DELETE FROM accident_reports 
       WHERE id = :id AND fleet_id = :fleet_id 
@@ -297,13 +297,13 @@ router.delete('/:id', authenticate, requirePermission('reports', 'delete'), enfo
       replacements: { id, fleet_id },
       type: sequelize.QueryTypes.DELETE
     });
-    
+
     if (!result || result.length === 0) {
       return res.status(404).json({ error: 'Report not found' });
     }
-    
+
     logger.info(`Report deleted: ${id}`, { deletedBy: req.user.userId });
-    
+
     res.json({ message: 'Report deleted successfully' });
   } catch (error) {
     logger.error('Delete report error:', error);
@@ -312,4 +312,3 @@ router.delete('/:id', authenticate, requirePermission('reports', 'delete'), enfo
 });
 
 module.exports = router;
-

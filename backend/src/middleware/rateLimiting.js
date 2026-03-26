@@ -74,12 +74,12 @@ const accountLockout = (req, res, next) => {
 const trackFailedLogin = (email, ip) => {
   const key = `${email}:${ip}`;
   const attempts = loginAttempts.get(key) || { count: 0, lockedUntil: null };
-  
+
   attempts.count += 1;
-  
+
   const maxAttempts = parseInt(process.env.MAX_LOGIN_ATTEMPTS) || 5;
   const lockoutDuration = parseInt(process.env.LOCKOUT_DURATION) || 15 * 60 * 1000;
-  
+
   if (attempts.count >= maxAttempts) {
     attempts.lockedUntil = Date.now() + lockoutDuration;
     logger.security('Account locked due to failed attempts', {
@@ -88,9 +88,9 @@ const trackFailedLogin = (email, ip) => {
       attempts: attempts.count
     });
   }
-  
+
   loginAttempts.set(key, attempts);
-  
+
   // Clean up old entries after 1 hour
   setTimeout(() => {
     if (loginAttempts.has(key)) {
@@ -120,17 +120,17 @@ const slowDown = rateLimit({
 // IP whitelist middleware
 const ipWhitelist = (req, res, next) => {
   const whitelist = process.env.IP_WHITELIST?.split(',') || [];
-  
+
   if (whitelist.length === 0) {
     return next();
   }
-  
+
   const clientIp = req.ip || req.connection.remoteAddress;
-  
+
   if (whitelist.includes(clientIp)) {
     return next();
   }
-  
+
   // Check if IP is in whitelist range (basic CIDR support)
   const isWhitelisted = whitelist.some(ip => {
     if (ip.includes('/')) {
@@ -140,11 +140,11 @@ const ipWhitelist = (req, res, next) => {
     }
     return ip === clientIp;
   });
-  
+
   if (isWhitelisted) {
     return next();
   }
-  
+
   logger.security('IP not whitelisted', { ip: clientIp, path: req.path });
   res.status(403).json({ error: 'Access denied' });
 };
