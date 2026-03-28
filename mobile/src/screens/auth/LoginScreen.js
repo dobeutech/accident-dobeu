@@ -31,7 +31,8 @@ export default function LoginScreen() {
         Alert.alert('Login Failed', result.error);
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'An unexpected error occurred';
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
