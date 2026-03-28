@@ -75,7 +75,6 @@ export const initDatabase = async () => {
     console.log('Database initialized successfully');
     return db;
   } catch (error) {
-    console.error('Error initializing database:', error);
     throw error;
   }
 };
