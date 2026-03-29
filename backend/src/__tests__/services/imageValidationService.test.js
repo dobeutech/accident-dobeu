@@ -42,6 +42,9 @@ describe('ImageValidationService', () => {
       }),
     };
 
+    imageValidationService.rekognition = mockRekognition;
+
+
     // Mock S3
     mockS3 = {
       headObject: jest.fn().mockReturnValue({
@@ -196,7 +199,9 @@ describe('ImageValidationService', () => {
       sequelize.query
         .mockResolvedValueOnce([[{ id: 'validation-1' }]])
         .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
         .mockResolvedValueOnce([[{ id: 'validation-2' }]])
+        .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
 
       const results = await imageValidationService.batchValidateImages(photos);
@@ -214,6 +219,7 @@ describe('ImageValidationService', () => {
 
       sequelize.query
         .mockResolvedValueOnce([[{ id: 'validation-1' }]])
+        .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
         .mockRejectedValueOnce(new Error('Validation failed'));
 
