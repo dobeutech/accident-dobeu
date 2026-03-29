@@ -71,8 +71,6 @@ export const initDatabase = async () => {
       CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
       CREATE INDEX IF NOT EXISTS idx_sync_queue_status ON sync_queue(status);
     `);
-    
-    console.log('Database initialized successfully');
     return db;
   } catch (error) {
     console.error('Error initializing database:', error);
