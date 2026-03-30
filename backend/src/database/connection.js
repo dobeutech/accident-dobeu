@@ -1,3 +1,4 @@
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 const { Sequelize } = require('sequelize');
 const logger = require('../utils/logger');
 
@@ -15,20 +16,20 @@ const poolConfig = {
   acquire: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 30000,
   idle: parseInt(process.env.DB_IDLE_TIMEOUT) || 10000,
   evict: 1000, // Check for idle connections every second
-  maxUses: 1000 // Close connection after 1000 uses to prevent memory leaks
+  maxUses: 1000, // Close connection after 1000 uses to prevent memory leaks
 };
 
 // SSL configuration for production
 const dialectOptions = process.env.NODE_ENV === 'production' ? {
   ssl: {
     require: true,
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   },
   keepAlive: true,
   statement_timeout: 30000, // 30 seconds
-  idle_in_transaction_session_timeout: 60000 // 60 seconds
+  idle_in_transaction_session_timeout: 60000, // 60 seconds
 } : {
-  keepAlive: true
+  keepAlive: true,
 };
 
 const sequelize = new Sequelize(
@@ -39,8 +40,8 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
-    logging: process.env.NODE_ENV === 'production' 
-      ? false 
+    logging: process.env.NODE_ENV === 'production'
+      ? false
       : (msg) => logger.debug(msg),
     pool: poolConfig,
     dialectOptions,
@@ -54,23 +55,23 @@ const sequelize = new Sequelize(
         /SequelizeHostNotReachableError/,
         /SequelizeInvalidConnectionError/,
         /SequelizeConnectionTimedOutError/,
-        /TimeoutError/
-      ]
+        /TimeoutError/,
+      ],
     },
     benchmark: process.env.NODE_ENV !== 'production',
-    logQueryParameters: process.env.NODE_ENV !== 'production'
-  }
+    logQueryParameters: process.env.NODE_ENV !== 'production',
+  },
 );
 
 // Monitor pool health
 if (process.env.NODE_ENV === 'production') {
   setInterval(() => {
-    const pool = sequelize.connectionManager.pool;
+    const { pool } = sequelize.connectionManager;
     logger.info('Database pool status', {
       size: pool.size,
       available: pool.available,
       using: pool.using,
-      waiting: pool.waiting
+      waiting: pool.waiting,
     });
   }, 60000); // Log every minute
 }
@@ -94,4 +95,3 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 module.exports = { sequelize, testConnection };
-

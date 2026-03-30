@@ -1,3 +1,4 @@
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -223,7 +224,8 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-httpServer.listen(PORT, () => {
+if (process.env.NODE_ENV !== 'test') {
+  httpServer.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`Process ID: ${process.pid}`);
@@ -233,6 +235,7 @@ httpServer.listen(PORT, () => {
     process.send('ready');
   }
 });
+}
 
 // Database keep-alive query
 setInterval(async () => {

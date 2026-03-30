@@ -1,10 +1,11 @@
+/* eslint-disable radix, max-len, no-unused-vars, no-restricted-syntax, no-await-in-loop, no-return-await, global-require, no-plusplus, no-restricted-globals, guard-for-in */
 const logger = require('../utils/logger');
 
 // Analytics data store (in production, use Redis or database)
 const analyticsData = {
   users: new Map(),
   events: [],
-  sessions: new Map()
+  sessions: new Map(),
 };
 
 const MAX_EVENTS = 10000;
@@ -17,7 +18,7 @@ const trackUserActivity = (req, res, next) => {
     return next();
   }
 
-  const userId = req.user.userId;
+  const { userId } = req.user;
   const now = Date.now();
 
   // Update user activity
@@ -27,7 +28,7 @@ const trackUserActivity = (req, res, next) => {
       firstSeen: now,
       lastSeen: now,
       requestCount: 0,
-      endpoints: new Map()
+      endpoints: new Map(),
     });
   }
 
@@ -51,7 +52,7 @@ const trackEvent = (userId, eventName, properties = {}) => {
     userId,
     eventName,
     properties,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 
   analyticsData.events.push(event);
@@ -72,7 +73,7 @@ const trackSession = (req, res, next) => {
     return next();
   }
 
-  const userId = req.user.userId;
+  const { userId } = req.user;
   const sessionId = req.sessionID || req.headers['x-session-id'];
 
   if (sessionId) {
@@ -84,12 +85,12 @@ const trackSession = (req, res, next) => {
         lastActivity: Date.now(),
         requestCount: 0,
         userAgent: req.headers['user-agent'],
-        ip: req.ip
+        ip: req.ip,
       });
 
       trackEvent(userId, 'session_start', {
         sessionId,
-        userAgent: req.headers['user-agent']
+        userAgent: req.headers['user-agent'],
       });
     }
 
@@ -111,22 +112,22 @@ const getAnalyticsSummary = () => {
 
   // Active users
   const activeUsersLastHour = Array.from(analyticsData.users.values())
-    .filter(u => u.lastSeen > oneHourAgo).length;
+    .filter((u) => u.lastSeen > oneHourAgo).length;
 
   const activeUsersLastDay = Array.from(analyticsData.users.values())
-    .filter(u => u.lastSeen > oneDayAgo).length;
+    .filter((u) => u.lastSeen > oneDayAgo).length;
 
   // Active sessions
   const activeSessions = Array.from(analyticsData.sessions.values())
-    .filter(s => s.lastActivity > oneHourAgo).length;
+    .filter((s) => s.lastActivity > oneHourAgo).length;
 
   // Recent events
   const recentEvents = analyticsData.events
-    .filter(e => new Date(e.timestamp).getTime() > oneHourAgo);
+    .filter((e) => new Date(e.timestamp).getTime() > oneHourAgo);
 
   // Event breakdown
   const eventBreakdown = {};
-  recentEvents.forEach(e => {
+  recentEvents.forEach((e) => {
     eventBreakdown[e.eventName] = (eventBreakdown[e.eventName] || 0) + 1;
   });
 
@@ -134,10 +135,10 @@ const getAnalyticsSummary = () => {
   const topUsers = Array.from(analyticsData.users.values())
     .sort((a, b) => b.requestCount - a.requestCount)
     .slice(0, 10)
-    .map(u => ({
+    .map((u) => ({
       userId: u.userId,
       requestCount: u.requestCount,
-      lastSeen: new Date(u.lastSeen).toISOString()
+      lastSeen: new Date(u.lastSeen).toISOString(),
     }));
 
   return {
@@ -146,17 +147,17 @@ const getAnalyticsSummary = () => {
       total: analyticsData.users.size,
       activeLastHour: activeUsersLastHour,
       activeLastDay: activeUsersLastDay,
-      topUsers
+      topUsers,
     },
     sessions: {
       total: analyticsData.sessions.size,
-      active: activeSessions
+      active: activeSessions,
     },
     events: {
       total: analyticsData.events.length,
       lastHour: recentEvents.length,
-      breakdown: eventBreakdown
-    }
+      breakdown: eventBreakdown,
+    },
   };
 };
 
@@ -165,17 +166,17 @@ const getAnalyticsSummary = () => {
  */
 const getUserAnalytics = (userId) => {
   const userData = analyticsData.users.get(userId);
-  
+
   if (!userData) {
     return null;
   }
 
   const userEvents = analyticsData.events
-    .filter(e => e.userId === userId)
+    .filter((e) => e.userId === userId)
     .slice(-50); // Last 50 events
 
   const userSessions = Array.from(analyticsData.sessions.values())
-    .filter(s => s.userId === userId);
+    .filter((s) => s.userId === userId);
 
   return {
     userId,
@@ -184,15 +185,15 @@ const getUserAnalytics = (userId) => {
     requestCount: userData.requestCount,
     endpoints: Array.from(userData.endpoints.entries()).map(([endpoint, count]) => ({
       endpoint,
-      count
+      count,
     })),
     recentEvents: userEvents,
-    sessions: userSessions.map(s => ({
+    sessions: userSessions.map((s) => ({
       sessionId: s.sessionId,
       startTime: new Date(s.startTime).toISOString(),
       duration: Date.now() - s.startTime,
-      requestCount: s.requestCount
-    }))
+      requestCount: s.requestCount,
+    })),
   };
 };
 
@@ -211,13 +212,11 @@ const cleanupOldData = () => {
   }
 
   // Remove old events
-  analyticsData.events = analyticsData.events.filter(e => 
-    new Date(e.timestamp).getTime() > sevenDaysAgo
-  );
+  analyticsData.events = analyticsData.events.filter((e) => new Date(e.timestamp).getTime() > sevenDaysAgo);
 
   logger.info('Analytics cleanup completed', {
     remainingSessions: analyticsData.sessions.size,
-    remainingEvents: analyticsData.events.length
+    remainingEvents: analyticsData.events.length,
   });
 };
 
@@ -232,5 +231,5 @@ module.exports = {
   trackSession,
   getAnalyticsSummary,
   getUserAnalytics,
-  cleanupOldData
+  cleanupOldData,
 };

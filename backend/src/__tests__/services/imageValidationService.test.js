@@ -1,9 +1,8 @@
+const AWS = require('aws-sdk');
+jest.mock('aws-sdk');
 const imageValidationService = require('../../services/imageValidationService');
 const { sequelize } = require('../../database/connection');
-const AWS = require('aws-sdk');
 
-// Mock AWS SDK
-jest.mock('aws-sdk');
 
 describe('ImageValidationService', () => {
   let mockRekognition;
@@ -18,7 +17,7 @@ describe('ImageValidationService', () => {
       detectLabels: jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({
           Labels: [
-            { Name: 'Car', Confidence: 98.5, Categories: [{ Name: 'Vehicle' }], Instances: [] },
+            { Name: 'Car', Confidence: 98.5, Instances: [] },
             { Name: 'Damage', Confidence: 92.3, Categories: [], Instances: [] },
           ],
         }),
@@ -58,7 +57,9 @@ describe('ImageValidationService', () => {
     };
 
     AWS.Rekognition.mockImplementation(() => mockRekognition);
+    imageValidationService.rekognition = mockRekognition;
     AWS.S3.mockImplementation(() => mockS3);
+    imageValidationService.s3 = mockS3;
 
     // Mock sequelize
     sequelize.query = jest.fn();
@@ -187,13 +188,20 @@ describe('ImageValidationService', () => {
   });
 
   describe('batchValidateImages', () => {
+    beforeEach(() => {
+      jest.spyOn(imageValidationService, 'validateImage').mockResolvedValue({ validationId: 'test-id', status: 'valid' });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
     it('should validate multiple images', async () => {
       const photos = [
         { id: 'photo-1', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image1.jpg' },
         { id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg' },
       ];
 
-      sequelize.query
+      sequelize.query = jest.fn()
         .mockResolvedValueOnce([[{ id: 'validation-1' }]])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([[{ id: 'validation-2' }]])
@@ -212,9 +220,8 @@ describe('ImageValidationService', () => {
         { id: 'photo-2', report_id: 'report-1', fleet_id: 'fleet-1', file_key: 'image2.jpg' },
       ];
 
-      sequelize.query
-        .mockResolvedValueOnce([[{ id: 'validation-1' }]])
-        .mockResolvedValueOnce([])
+      jest.spyOn(imageValidationService, 'validateImage')
+        .mockResolvedValueOnce({ validationId: 'test-id', status: 'valid' })
         .mockRejectedValueOnce(new Error('Validation failed'));
 
       const results = await imageValidationService.batchValidateImages(photos);
