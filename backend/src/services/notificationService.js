@@ -367,6 +367,7 @@ class NotificationService {
   /**
    * Get notification history for user
    */
+  // eslint-disable-next-line class-methods-use-this, no-unused-vars
   async getNotificationHistory(userId, limit = 50) {
     // This would typically query a notifications table
     // For now, return empty array as placeholder
@@ -376,6 +377,7 @@ class NotificationService {
   /**
    * Mark notification as read
    */
+  // eslint-disable-next-line class-methods-use-this
   async markAsRead(notificationId, userId) {
     // This would typically update a notifications table
     logger.info('Notification marked as read', { notificationId, userId });

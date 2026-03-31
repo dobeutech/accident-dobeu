@@ -18,5 +18,8 @@ export default defineConfig({
         ws: true
       }
     }
+  },
+  test: {
+    setupFiles: ['./vitest.setup.js'],
   }
 });

@@ -13,22 +13,22 @@ router.get('/reports', [
   requirePermission('exports', 'read'),
   enforceFleetContext,
   query('format').isIn(['pdf', 'docx', 'xlsx', 'csv', 'xml', 'json', 'zip']),
-  query('report_ids').optional().isString()
+  query('report_ids').optional().isString(),
 ], async (req, res) => {
   try {
     const { format, report_ids } = req.query;
-    const fleet_id = req.user.fleet_id;
-    
+    const { fleet_id } = req.user;
+
     let reportIds = [];
     if (report_ids) {
-      reportIds = report_ids.split(',').filter(id => id.trim());
+      reportIds = report_ids.split(',').filter((id) => id.trim());
     }
-    
+
     const result = await exportService.exportReports(fleet_id, format, reportIds);
-    
+
     res.setHeader('Content-Type', result.contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
-    
+
     res.send(result.data);
   } catch (error) {
     logger.error('Export error:', error);
@@ -37,4 +37,3 @@ router.get('/reports', [
 });
 
 module.exports = router;
-

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const express = require('express');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { getAnalyticsSummary, getUserAnalytics } = require('../middleware/analytics');
@@ -18,14 +19,14 @@ router.get('/summary', authenticate, requireRole('super_admin', 'fleet_admin'), 
 router.get('/users/:userId', authenticate, (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     // Users can only view their own analytics unless they're admin
     if (userId !== req.user.userId && !['super_admin', 'fleet_admin'].includes(req.user.role)) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
     const analytics = getUserAnalytics(userId);
-    
+
     if (!analytics) {
       return res.status(404).json({ error: 'No analytics data found for user' });
     }
