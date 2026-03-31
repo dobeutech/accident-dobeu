@@ -26,7 +26,6 @@ export const formatDate = (dateString, formatStr = 'MMM dd, yyyy') => {
     
     return format(date, formatStr);
   } catch (error) {
-    console.error('Date formatting error:', error, 'Input:', dateString);
     return 'Invalid Date';
   }
 };
