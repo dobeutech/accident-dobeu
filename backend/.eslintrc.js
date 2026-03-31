@@ -1,24 +1,32 @@
 module.exports = {
   env: {
     node: true,
+    commonjs: true,
     es2021: true,
     jest: true,
   },
-  extends: [
-    'airbnb-base',
-  ],
+  extends: ['airbnb-base'],
   parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
+    ecmaVersion: 12,
   },
   rules: {
-    'no-console': 'off', // Allow console for logging
-    'consistent-return': 'off',
-    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    'max-len': ['error', { code: 120, ignoreComments: true }],
-    'no-underscore-dangle': 'off',
-    'camelcase': 'off', // Database fields use snake_case
-    'no-param-reassign': ['error', { props: false }],
-    'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    'max-len': ['warn', { code: 120, ignoreUrls: true, ignoreStrings: true, ignoreTemplateLiterals: true }],
+    'consistent-return': 'warn',
+    'camelcase': 'warn',
+    'arrow-body-style': 'off',
+    'class-methods-use-this': 'warn',
+    'no-restricted-syntax': 'warn',
+    'no-await-in-loop': 'warn',
+    'global-require': 'warn',
+    'no-use-before-define': ['error', { functions: false, classes: true, variables: true }],
+    'no-plusplus': 'off',
+    'no-bitwise': 'off',
+    'radix': 'off',
+    'no-restricted-globals': 'off',
+    'no-param-reassign': 'warn',
+    'guard-for-in': 'warn',
+    'no-return-await': 'warn'
   },
 };

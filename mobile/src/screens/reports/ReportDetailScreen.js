@@ -4,7 +4,8 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { reportStorage } from '../../storage/database';
 import { reportService } from '../../services/api';
@@ -21,7 +22,9 @@ export default function ReportDetailScreen({ route }) {
   const loadReport = async () => {
     try {
       const localReport = await reportStorage.getById(reportId);
-      setReport(localReport);
+      if (localReport) {
+        setReport(localReport);
+      }
       
       // Try to get latest from server
       try {
@@ -29,9 +32,13 @@ export default function ReportDetailScreen({ route }) {
         setReport(response.data.report);
       } catch (error) {
         console.error('Error loading from server:', error);
+        if (!localReport) {
+          Alert.alert('Error', 'Failed to load report from server');
+        }
       }
     } catch (error) {
       console.error('Error loading report:', error);
+      Alert.alert('Error', 'Failed to load report');
     } finally {
       setLoading(false);
     }
