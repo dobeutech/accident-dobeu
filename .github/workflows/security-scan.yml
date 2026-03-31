@@ -26,15 +26,15 @@ jobs:
       - name: Scan backend dependencies
         run: |
           cd backend
-          npm audit --audit-level=moderate --json > audit-backend.json || true
-          npm audit --audit-level=moderate
+          npm audit --audit-level=high --json > audit-backend.json || true
+          npm audit --audit-level=high
         continue-on-error: true
       
       - name: Scan web dependencies
         run: |
           cd web
-          npm audit --audit-level=moderate --json > audit-web.json || true
-          npm audit --audit-level=moderate
+          npm audit --audit-level=high --json > audit-web.json || true
+          npm audit --audit-level=high
         continue-on-error: true
       
       - name: Upload audit results
