@@ -76,7 +76,7 @@ if (!isProduction) {
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),
   format: isProduction ? productionFormat : developmentFormat,
-  defaultMeta: { 
+  defaultMeta: {
     service: 'accident-app-backend',
     environment: process.env.NODE_ENV || 'development'
   },
@@ -96,7 +96,7 @@ logger.performance = (message, duration, meta = {}) => {
 
 // Handle uncaught exceptions
 logger.exceptions.handle(
-  new winston.transports.File({ 
+  new winston.transports.File({
     filename: path.join(logsDir, 'exceptions.log'),
     maxsize: 10485760,
     maxFiles: 7
@@ -105,7 +105,7 @@ logger.exceptions.handle(
 
 // Handle unhandled promise rejections
 logger.rejections.handle(
-  new winston.transports.File({ 
+  new winston.transports.File({
     filename: path.join(logsDir, 'rejections.log'),
     maxsize: 10485760,
     maxFiles: 7
@@ -113,4 +113,3 @@ logger.rejections.handle(
 );
 
 module.exports = logger;
-

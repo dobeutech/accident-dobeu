@@ -71,7 +71,7 @@ class TelematicsService {
       }
 
       logger.info(`Kill switch engaged successfully for vehicle ${vehicleId}`);
-      
+
       return {
         success: true,
         vehicleId,
@@ -141,7 +141,7 @@ class TelematicsService {
       }
 
       logger.info(`Kill switch disengaged successfully for vehicle ${vehicleId}`);
-      
+
       return {
         success: true,
         vehicleId,
@@ -241,7 +241,7 @@ class TelematicsService {
     try {
       const config = JSON.parse(vehicle.additional_config || '{}');
       const apiKey = this.decrypt(vehicle.api_key_encrypted);
-      
+
       const endpoint = vehicle.api_endpoint || 'https://my.geotab.com/apiv1';
       const command = action === 'engage' ? 'ImmobilizeDevice' : 'MobilizeDevice';
 
@@ -276,7 +276,7 @@ class TelematicsService {
     try {
       const apiKey = this.decrypt(vehicle.api_key_encrypted);
       const endpoint = vehicle.api_endpoint || 'https://api.samsara.com';
-      
+
       const command = action === 'engage' ? 'immobilize' : 'mobilize';
       const url = `${endpoint}/fleet/vehicles/${vehicle.telematics_device_id}/${command}`;
 
@@ -304,7 +304,7 @@ class TelematicsService {
       const apiKey = this.decrypt(vehicle.api_key_encrypted);
       const apiSecret = this.decrypt(vehicle.api_secret_encrypted);
       const endpoint = vehicle.api_endpoint || 'https://api.verizonconnect.com';
-      
+
       const command = action === 'engage' ? 'disable' : 'enable';
       const url = `${endpoint}/api/v1/vehicles/${vehicle.telematics_device_id}/starter/${command}`;
 
@@ -331,7 +331,7 @@ class TelematicsService {
     try {
       const apiKey = this.decrypt(vehicle.api_key_encrypted);
       const endpoint = vehicle.api_endpoint || 'https://api.fleetcomplete.com';
-      
+
       const command = action === 'engage' ? 'immobilize' : 'mobilize';
       const url = `${endpoint}/api/v2/vehicles/${vehicle.telematics_device_id}/${command}`;
 
@@ -358,7 +358,7 @@ class TelematicsService {
     try {
       const apiKey = this.decrypt(vehicle.api_key_encrypted);
       const endpoint = vehicle.api_endpoint || 'https://api.teletracnavman.com';
-      
+
       const command = action === 'engage' ? 'immobilize' : 'mobilize';
       const url = `${endpoint}/api/v1/vehicles/${vehicle.telematics_device_id}/immobilizer`;
 
@@ -387,7 +387,7 @@ class TelematicsService {
     try {
       const config = JSON.parse(vehicle.additional_config || '{}');
       const apiKey = this.decrypt(vehicle.api_key_encrypted);
-      
+
       if (!config.endpoint || !config.method) {
         throw new Error('Custom provider requires endpoint and method in additional_config');
       }

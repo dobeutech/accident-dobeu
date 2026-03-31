@@ -20,12 +20,12 @@ const performanceMonitoring = (req, res, next) => {
 
   // Capture response
   const originalSend = res.send;
-  res.send = function(data) {
+  res.send = function customSend(data) {
     const duration = Date.now() - startTime;
-    
+
     // Update metrics
     requestMetrics.totalResponseTime += duration;
-    
+
     if (res.statusCode >= 200 && res.statusCode < 400) {
       requestMetrics.successfulRequests++;
     } else {
@@ -125,12 +125,12 @@ if (process.env.NODE_ENV === 'production') {
   setInterval(() => {
     const metrics = getMetrics();
     logger.info('Performance metrics', metrics.summary);
-    
+
     // Log top 5 slowest endpoints
     const slowest = metrics.endpoints
       .sort((a, b) => b.avgTime - a.avgTime)
       .slice(0, 5);
-    
+
     if (slowest.length > 0) {
       logger.info('Slowest endpoints', slowest);
     }

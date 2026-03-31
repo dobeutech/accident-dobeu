@@ -16,22 +16,21 @@ jest.mock('../utils/logger', () => ({
   warn: jest.fn(),
   debug: jest.fn(),
   security: jest.fn(),
-  performance: jest.fn()
+  performance: jest.fn(),
 }));
 
 // Global test utilities
+const jwt = require('jsonwebtoken');
+
 global.testUtils = {
-  generateMockToken: () => {
-    const jwt = require('jsonwebtoken');
-    return jwt.sign(
-      {
-        userId: 'test-user-id',
-        email: 'test@example.com',
-        role: 'fleet_admin',
-        fleet_id: 'test-fleet-id'
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-  }
+  generateMockToken: () => jwt.sign(
+    {
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      role: 'fleet_admin',
+      fleet_id: 'test-fleet-id',
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' },
+  ),
 };

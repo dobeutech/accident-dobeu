@@ -5,11 +5,11 @@ const { hashPassword, comparePassword } = require('../utils/password');
 const { generateToken } = require('../utils/jwt');
 const logger = require('../utils/logger');
 const { authenticate } = require('../middleware/auth');
-const { 
-  authLimiter, 
-  accountLockout, 
-  trackFailedLogin, 
-  resetFailedAttempts 
+const {
+  authLimiter,
+  accountLockout,
+  trackFailedLogin,
+  resetFailedAttempts
 } = require('../middleware/rateLimiting');
 
 const router = express.Router();
@@ -123,9 +123,9 @@ router.post('/register', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    
+
     const { email, password, first_name, last_name, role, fleet_id, phone } = req.body;
-    
+
     // Check if user already exists
     const [existing] = await sequelize.query(`
       SELECT id FROM users WHERE email = :email
@@ -133,14 +133,14 @@ router.post('/register', [
       replacements: { email },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     if (existing) {
       return res.status(400).json({ error: 'User already exists' });
     }
-    
+
     // Hash password
     const password_hash = await hashPassword(password);
-    
+
     // Create user
     const [result] = await sequelize.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role, fleet_id, phone)
@@ -150,11 +150,11 @@ router.post('/register', [
       replacements: { email, password_hash, first_name, last_name, role, fleet_id, phone },
       type: sequelize.QueryTypes.INSERT
     });
-    
+
     const user = result[0];
-    
+
     logger.info(`User registered: ${email}`, { userId: user.id, role });
-    
+
     res.status(201).json({
       message: 'User created successfully',
       user: {
@@ -181,9 +181,9 @@ router.post('/login', authLimiter, accountLockout, [
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    
+
     const { email, password } = req.body;
-    
+
     // Find user
     const users = await sequelize.query(`
       SELECT u.*, f.name as fleet_name 
@@ -194,31 +194,31 @@ router.post('/login', authLimiter, accountLockout, [
       replacements: { email },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     if (!users || users.length === 0) {
       trackFailedLogin(email, req.ip);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    
+
     const user = users[0];
-    
+
     // Verify password
     const isValid = await comparePassword(password, user.password_hash);
     if (!isValid) {
       trackFailedLogin(email, req.ip);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    
+
     // Reset failed attempts on successful login
     resetFailedAttempts(email, req.ip);
-    
+
     // Update last login
     await sequelize.query(`
       UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = :id
     `, {
       replacements: { id: user.id }
     });
-    
+
     // Generate token
     const token = generateToken({
       userId: user.id,
@@ -227,7 +227,7 @@ router.post('/login', authLimiter, accountLockout, [
       fleet_id: user.fleet_id,
       fleet_name: user.fleet_name
     });
-    
+
     // Set httpOnly cookie for security
     res.cookie('auth_token', token, {
       httpOnly: true,
@@ -235,9 +235,9 @@ router.post('/login', authLimiter, accountLockout, [
       sameSite: 'strict',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
-    
+
     logger.info(`User logged in: ${email}`, { userId: user.id, role: user.role });
-    
+
     res.json({
       token, // Still send in response for mobile app compatibility
       user: {
@@ -269,11 +269,11 @@ router.get('/me', authenticate, async (req, res) => {
       replacements: { id: req.user.userId },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     if (!users || users.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     res.json({ user: users[0] });
   } catch (error) {
     logger.error('Get current user error:', error);
@@ -282,4 +282,3 @@ router.get('/me', authenticate, async (req, res) => {
 });
 
 module.exports = router;
-

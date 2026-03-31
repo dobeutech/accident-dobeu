@@ -9,13 +9,13 @@ class ImageValidationService {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     });
-    
+
     this.s3 = new AWS.S3({
       region: process.env.AWS_REGION || 'us-east-1',
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     });
-    
+
     this.minConfidence = parseFloat(process.env.AI_MIN_CONFIDENCE || '70');
     this.provider = process.env.AI_PROVIDER || 'aws_rekognition';
   }
@@ -25,10 +25,10 @@ class ImageValidationService {
    */
   async validateImage(photoId, reportId, fleetId, fileKey) {
     const startTime = Date.now();
-    
+
     try {
       logger.info(`Starting image validation for photo ${photoId}`);
-      
+
       // Create validation record
       const [validationRecord] = await sequelize.query(`
         INSERT INTO image_validations 
@@ -47,7 +47,7 @@ class ImageValidationService {
       });
 
       const validation = validationRecord[0];
-      
+
       // Run all validations in parallel
       const [
         labelDetection,
@@ -80,16 +80,16 @@ class ImageValidationService {
       await this.updatePhotoValidationStatus(photoId, validationResults.validation_status);
 
       logger.info(`Image validation completed for photo ${photoId} in ${processingTime}ms`);
-      
+
       return {
         validationId: validation.id,
         status: validationResults.validation_status,
         ...validationResults
       };
-      
+
     } catch (error) {
       logger.error(`Image validation failed for photo ${photoId}:`, error);
-      
+
       // Update validation record with error
       await sequelize.query(`
         UPDATE image_validations 
@@ -106,7 +106,7 @@ class ImageValidationService {
         },
         type: sequelize.QueryTypes.UPDATE
       });
-      
+
       throw error;
     }
   }
@@ -128,7 +128,7 @@ class ImageValidationService {
       };
 
       const result = await this.rekognition.detectLabels(params).promise();
-      
+
       return {
         labels: result.Labels.map(label => ({
           name: label.Name,
@@ -160,20 +160,20 @@ class ImageValidationService {
       };
 
       const result = await this.rekognition.detectText(params).promise();
-      
+
       const textDetections = result.TextDetections || [];
       const lines = textDetections.filter(t => t.Type === 'LINE');
       const words = textDetections.filter(t => t.Type === 'WORD');
-      
+
       // Extract full text
       const extractedText = lines
         .sort((a, b) => a.Geometry.BoundingBox.Top - b.Geometry.BoundingBox.Top)
         .map(t => t.DetectedText)
         .join('\n');
-      
+
       // Detect license plates
       const licensePlates = this.extractLicensePlates(words);
-      
+
       // Calculate average confidence
       const avgConfidence = words.length > 0
         ? words.reduce((sum, w) => sum + w.Confidence, 0) / words.length
@@ -208,7 +208,7 @@ class ImageValidationService {
       };
 
       const result = await this.rekognition.detectModerationLabels(params).promise();
-      
+
       const inappropriateContent = result.ModerationLabels.length > 0;
       const flaggedCategories = result.ModerationLabels.map(label => ({
         name: label.Name,
@@ -242,7 +242,7 @@ class ImageValidationService {
       };
 
       const result = await this.rekognition.detectFaces(params).promise();
-      
+
       return {
         hasFaces: result.FaceDetails.length > 0,
         faceCount: result.FaceDetails.length,
@@ -271,7 +271,7 @@ class ImageValidationService {
 
       const metadata = await this.s3.headObject(params).promise();
       const imageData = await this.s3.getObject(params).promise();
-      
+
       // Use Rekognition to assess quality through face detection
       const faceParams = {
         Image: {
@@ -284,7 +284,7 @@ class ImageValidationService {
       };
 
       const faceResult = await this.rekognition.detectFaces(faceParams).promise();
-      
+
       let qualityScore = 1.0;
       let isBlurry = false;
       let isDark = false;
@@ -293,7 +293,7 @@ class ImageValidationService {
         const face = faceResult.FaceDetails[0];
         const sharpness = face.Quality?.Sharpness || 100;
         const brightness = face.Quality?.Brightness || 100;
-        
+
         qualityScore = (sharpness + brightness) / 200;
         isBlurry = sharpness < 50;
         isDark = brightness < 30;
@@ -338,7 +338,7 @@ class ImageValidationService {
     // Check image quality
     if (qualityCheck.isBlurry || qualityCheck.isDark) {
       requiresManualReview = true;
-      manualReviewReason = manualReviewReason 
+      manualReviewReason = manualReviewReason
         ? `${manualReviewReason}; Poor image quality`
         : 'Poor image quality';
     }
@@ -359,8 +359,8 @@ class ImageValidationService {
       validation_status: validationStatus,
       detected_labels: JSON.stringify(labelDetection.labels),
       detected_objects: JSON.stringify(labelDetection.labels.filter(l => l.instances > 0)),
-      scene_confidence: labelDetection.labels.length > 0 
-        ? labelDetection.labels[0].confidence / 100 
+      scene_confidence: labelDetection.labels.length > 0
+        ? labelDetection.labels[0].confidence / 100
         : 0,
       is_vehicle_damage_detected: labelDetection.vehicleDamageDetected,
       damage_severity: labelDetection.damageSeverity,
@@ -390,7 +390,7 @@ class ImageValidationService {
    */
   async updateValidationRecord(validationId, results, processingTime) {
     const fields = Object.keys(results).map(key => `${key} = :${key}`).join(', ');
-    
+
     await sequelize.query(`
       UPDATE image_validations 
       SET ${fields},
@@ -430,13 +430,13 @@ class ImageValidationService {
       'damage', 'dent', 'scratch', 'broken', 'cracked', 'shattered',
       'collision', 'crash', 'wreck', 'bent', 'crushed', 'smashed'
     ];
-    
+
     const vehicleKeywords = [
       'car', 'vehicle', 'truck', 'automobile', 'van', 'suv', 'bus'
     ];
 
-    const hasVehicle = labels.some(label => 
-      vehicleKeywords.some(keyword => 
+    const hasVehicle = labels.some(label =>
+      vehicleKeywords.some(keyword =>
         label.Name.toLowerCase().includes(keyword)
       )
     );
@@ -498,7 +498,7 @@ class ImageValidationService {
    */
   async batchValidateImages(photos) {
     const results = [];
-    
+
     for (const photo of photos) {
       try {
         const result = await this.validateImage(

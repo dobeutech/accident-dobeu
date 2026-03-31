@@ -47,7 +47,7 @@ router.get('/detailed', async (req, res) => {
   const totalMem = os.totalmem();
   const freeMem = os.freemem();
   const memoryUsagePercent = ((totalMem - freeMem) / totalMem) * 100;
-  
+
   checks.checks.memory = {
     status: memoryUsagePercent < 90 ? 'healthy' : 'warning',
     heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
@@ -110,7 +110,7 @@ router.get('/metrics', async (req, res) => {
   const { getMetrics } = require('../middleware/performanceMonitoring');
   const { getDatabaseStats } = require('../middleware/queryMonitoring');
   const performanceMetrics = getMetrics();
-  
+
   const metrics = {
     timestamp: new Date().toISOString(),
     performance: performanceMetrics.summary,

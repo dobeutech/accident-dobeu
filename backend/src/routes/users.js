@@ -21,7 +21,7 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
       replacements: { fleet_id: req.user.fleet_id },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     res.json({ users });
   } catch (error) {
     logger.error('Get users error:', error);
@@ -33,7 +33,7 @@ router.get('/', authenticate, enforceFleetContext, async (req, res) => {
 router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const [users] = await sequelize.query(`
       SELECT u.id, u.email, u.first_name, u.last_name, u.role, 
              u.phone, u.is_active, u.last_login, u.created_at
@@ -43,11 +43,11 @@ router.get('/:id', authenticate, enforceFleetContext, async (req, res) => {
       replacements: { id, fleet_id: req.user.fleet_id },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     if (!users || users.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     res.json({ user: users[0] });
   } catch (error) {
     logger.error('Get user error:', error);
@@ -72,10 +72,10 @@ router.post('/', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    
+
     const { email, password, first_name, last_name, role, phone } = req.body;
     const fleet_id = req.user.fleet_id;
-    
+
     // Check if user already exists in this fleet
     const [existing] = await sequelize.query(`
       SELECT id FROM users WHERE email = :email AND fleet_id = :fleet_id
@@ -83,14 +83,14 @@ router.post('/', [
       replacements: { email, fleet_id },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     if (existing && existing.length > 0) {
       return res.status(400).json({ error: 'User already exists in this fleet' });
     }
-    
+
     // Hash password
     const password_hash = await hashPassword(password);
-    
+
     // Create user
     const [result] = await sequelize.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role, fleet_id, phone)
@@ -100,11 +100,11 @@ router.post('/', [
       replacements: { email, password_hash, first_name, last_name, role, fleet_id, phone },
       type: sequelize.QueryTypes.INSERT
     });
-    
+
     const user = result[0];
-    
+
     logger.info(`User created: ${email}`, { userId: user.id, fleetId: fleet_id, createdBy: req.user.userId });
-    
+
     res.status(201).json({ user });
   } catch (error) {
     logger.error('Create user error:', error);
@@ -128,25 +128,25 @@ router.put('/:id', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    
+
     const { id } = req.params;
     const fleet_id = req.user.fleet_id;
-    
+
     const updates = {};
     const allowedFields = ['first_name', 'last_name', 'role', 'phone', 'is_active'];
-    
+
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
     });
-    
+
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: 'No valid fields to update' });
     }
-    
+
     updates.updated_at = new Date();
-    
+
     const setClause = Object.keys(updates).map(key => `${key} = :${key}`).join(', ');
     const [result] = await sequelize.query(`
       UPDATE users 
@@ -157,13 +157,13 @@ router.put('/:id', [
       replacements: { id, fleet_id, ...updates },
       type: sequelize.QueryTypes.UPDATE
     });
-    
+
     if (!result || result.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     logger.info(`User updated: ${id}`, { updatedBy: req.user.userId });
-    
+
     res.json({ user: result[0] });
   } catch (error) {
     logger.error('Update user error:', error);
@@ -176,25 +176,25 @@ router.delete('/:id', authenticate, requirePermission('users', 'delete'), enforc
   try {
     const { id } = req.params;
     const fleet_id = req.user.fleet_id;
-    
+
     // Prevent self-deletion
     if (id === req.user.userId) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
-    
+
     const [result] = await sequelize.query(`
       DELETE FROM users WHERE id = :id AND fleet_id = :fleet_id RETURNING id
     `, {
       replacements: { id, fleet_id },
       type: sequelize.QueryTypes.DELETE
     });
-    
+
     if (!result || result.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     logger.info(`User deleted: ${id}`, { deletedBy: req.user.userId });
-    
+
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     logger.error('Delete user error:', error);
@@ -203,4 +203,3 @@ router.delete('/:id', authenticate, requirePermission('users', 'delete'), enforc
 });
 
 module.exports = router;
-
