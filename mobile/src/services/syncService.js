@@ -1,46 +1,35 @@
-import { getDatabase } from '../storage/database';
+import { syncQueueStorage } from '../storage/database';
 import { reportService, uploadService } from './api';
 import * as FileSystem from 'expo-file-system';
 import { v4 as uuidv4 } from 'uuid';
 
 class SyncService {
   async queueItem(entityType, entityId, operation, payload) {
-    const db = getDatabase();
     const id = uuidv4();
     
-    await db.runAsync(
-      `INSERT INTO sync_queue (id, entity_type, entity_id, operation, payload, status)
-       VALUES (?, ?, ?, ?, ?, 'pending')`,
-      [id, entityType, entityId, operation, JSON.stringify(payload)]
-    );
+    await syncQueueStorage.save({
+      id,
+      entity_type: entityType,
+      entity_id: entityId,
+      operation,
+      payload: JSON.stringify(payload)
+    });
     
     return id;
   }
   
   async getPendingCount() {
-    const db = getDatabase();
-    const result = await db.getFirstAsync(
-      'SELECT COUNT(*) as count FROM sync_queue WHERE status = ?',
-      ['pending']
-    );
-    return result?.count || 0;
+    return await syncQueueStorage.getPendingCount();
   }
   
   async syncAll() {
-    const db = getDatabase();
-    const pending = await db.getAllAsync(
-      'SELECT * FROM sync_queue WHERE status = ? ORDER BY created_at LIMIT 10',
-      ['pending']
-    );
+    const pending = await syncQueueStorage.getPending(10);
     
     let synced = 0;
     
     for (const item of pending) {
       try {
-        await db.runAsync(
-          'UPDATE sync_queue SET status = ? WHERE id = ?',
-          ['processing', item.id]
-        );
+        await syncQueueStorage.updateStatus(item.id, 'processing');
         
         const payload = JSON.parse(item.payload);
         
@@ -56,27 +45,14 @@ class SyncService {
             break;
         }
         
-        await db.runAsync(
-          'UPDATE sync_queue SET status = ?, processed_at = datetime("now") WHERE id = ?',
-          ['completed', item.id]
-        );
+        await syncQueueStorage.markCompleted(item.id);
         
         synced++;
       } catch (error) {
         console.error(`Sync error for ${item.id}:`, error);
         const retryCount = (item.retry_count || 0) + 1;
         
-        await db.runAsync(
-          `UPDATE sync_queue 
-           SET status = ?, retry_count = ?, error_message = ? 
-           WHERE id = ?`,
-          [
-            retryCount >= 3 ? 'failed' : 'pending',
-            retryCount,
-            error.message,
-            item.id
-          ]
-        );
+        await syncQueueStorage.markFailed(item.id, retryCount, error.message);
       }
     }
     
