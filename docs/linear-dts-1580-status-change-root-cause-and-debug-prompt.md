@@ -128,3 +128,19 @@ Post this as a comment on DTS-1580 if MCP access is unavailable:
 ## Operational Note
 
 In this runtime, MCP servers for **Composio**, **Linear**, and **Context7** were not configured/discoverable, so direct issue mutation and remote agent launch could not be executed here. This document provides the exact prompt and update content for immediate use once those MCP connections are available.
+
+## Local Execution Fallback (Lint/Test)
+
+Since remote Composio Cursor-agent launch was not available in this runtime, local validation was executed in `backend/`:
+
+1. `npm install` - **pass**
+2. `npm run lint` - **fail**
+   - ESLint reported a large pre-existing violation set:
+   - `1170 problems (1168 errors, 2 warnings)`
+3. `npm test -- --runInBand` - **fail**
+   - Representative failures:
+     - `TelematicsService` tests failing with `TypeError: Invalid initialization vector`
+     - `ImageValidationService` tests failing assertions (`expected flagged`, received `valid`)
+     - Environment validation path triggers `process.exit(1)` in test runtime
+
+These failures are consistent with existing baseline instability and are not tied to the DTS-1580 duplicate status transition event.
