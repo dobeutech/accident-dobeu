@@ -123,3 +123,39 @@ Recommended immediate follow-up:
 2. Run the prompt once in CI-enabled environment to archive validation evidence (eslint + tests + vector-count integrity).
 3. Reopen only if evidence shows count mismatch, ingestion regressions, or Pinecone/pdfplumber runtime errors.
 ```
+
+## Local Agent-Run Fallback Execution (eslint + tests)
+
+Because MCP servers for Composio/Linear/Context7 were unavailable in this environment, the requested agent run was executed locally against `backend/`:
+
+- `npm install`: pass
+- `npm run lint`: fail
+  - summary: `1170 problems (1168 errors, 2 warnings)`, mostly pre-existing style/rule violations across many files
+- `npm test -- --runInBand`: fail
+  - notable failures:
+    - `src/__tests__/services/telematicsService.test.js`
+      - `TypeError: Invalid initialization vector` from decryption flow
+    - `src/__tests__/services/imageValidationService.test.js`
+      - mocked Rekognition expectations not met
+      - expected flagged status mismatches
+    - process exits via `src/utils/validateEnv.js` during test runtime
+
+These failures indicate that additional stabilization work is required before treating this pipeline as a clean regression-free baseline.
+
+## Linear Status Update Template (post-run)
+
+```markdown
+Automation follow-up for DTS-1589:
+
+- Reviewed the status transition to **Duplicate** and found no direct failure signal in the payload; likely administrative deduplication of a DONE milestone report.
+- Added a reusable debug prompt template to validate/reopen triage for RAG vectorization.
+- Executed fallback quality gates locally:
+  - `npm install` (backend): pass
+  - `npm run lint` (backend): fail (`1170` issues, mostly pre-existing lint debt)
+  - `npm test -- --runInBand` (backend): fail (telematics decryption IV errors, image validation test expectation mismatches, validateEnv-triggered process exit)
+
+Recommended status handling:
+1. Keep this issue as duplicate unless canonical linked issue needs reopen.
+2. Track lint/test remediation in a separate stabilization issue tied to ingestion/telematics test health.
+3. Use the attached debug prompt template as the standard incident/reopen procedure.
+```
