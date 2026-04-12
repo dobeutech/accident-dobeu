@@ -1,13 +1,20 @@
 {
   "dashboard": {
+    "uid": "fleet-accident-prod",
     "title": "Fleet Accident Reporter - Production Dashboard",
     "tags": ["production", "monitoring"],
     "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 1,
     "panels": [
       {
         "id": 1,
         "title": "Request Rate",
         "type": "graph",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus-main"
+        },
         "targets": [
           {
             "expr": "rate(http_requests_total[5m])",
@@ -19,6 +26,10 @@
         "id": 2,
         "title": "Response Time (p95)",
         "type": "graph",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus-main"
+        },
         "targets": [
           {
             "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
@@ -30,6 +41,10 @@
         "id": 3,
         "title": "Error Rate",
         "type": "graph",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus-main"
+        },
         "targets": [
           {
             "expr": "rate(http_requests_total{status=~\"5..\"}[5m])",
@@ -45,6 +60,10 @@
         "id": 4,
         "title": "CPU Usage",
         "type": "graph",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus-main"
+        },
         "targets": [
           {
             "expr": "100 - (avg(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
@@ -56,6 +75,10 @@
         "id": 5,
         "title": "Memory Usage",
         "type": "graph",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus-main"
+        },
         "targets": [
           {
             "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100",
@@ -67,6 +90,10 @@
         "id": 6,
         "title": "Database Connections",
         "type": "graph",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus-main"
+        },
         "targets": [
           {
             "expr": "pg_stat_database_numbackends",
@@ -78,6 +105,10 @@
         "id": 7,
         "title": "Active Users",
         "type": "stat",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus-main"
+        },
         "targets": [
           {
             "expr": "count(count by (user_id) (http_requests_total[5m]))",
@@ -89,6 +120,10 @@
         "id": 8,
         "title": "Uptime",
         "type": "stat",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus-main"
+        },
         "targets": [
           {
             "expr": "time() - process_start_time_seconds",
@@ -102,5 +137,6 @@
       "from": "now-6h",
       "to": "now"
     }
-  }
+  },
+  "overwrite": true
 }
