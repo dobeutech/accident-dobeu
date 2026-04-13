@@ -36,6 +36,33 @@ Take action if the cancellation was unintentional, unauthorized, or automation-d
 
 ---
 
+## Local Validation Evidence (Fallback for unavailable Composio launch)
+
+Commands executed:
+
+- `npm run lint --prefix backend`
+- `npm test --prefix backend -- --runInBand`
+
+Results:
+
+- Lint: **failed** with large baseline style/rule debt.
+  - Summary: `✖ 1170 problems (1168 errors, 2 warnings)` with many marked auto-fixable.
+- Tests: **failed** in existing backend suites with environment/service-sensitive failures:
+  - `src/__tests__/services/telematicsService.test.js`
+    - `TypeError: Invalid initialization vector`
+    - expectation mismatch on kill-switch enabled checks
+  - `src/__tests__/services/imageValidationService.test.js`
+    - mocked AWS Rekognition call expectations unmet
+    - status assertions mismatch (`flagged` vs `valid`)
+  - process exits during env validation in `src/utils/validateEnv.js`
+
+Classification:
+
+- These failures are **not introduced by this automation change** (which only adds triage documentation).
+- They should be treated as **pre-existing baseline quality issues** requiring a separate cleanup/repair track.
+
+---
+
 ## Linear Comment Template (paste into issue)
 
 ```md
