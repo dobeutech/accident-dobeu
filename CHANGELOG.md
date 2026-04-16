@@ -36,6 +36,13 @@
 - Verified the updated `rateLimiting` middleware and `uploads` route load successfully.
 - Confirmed the backend Jest suite and ESLint violations already fail on the original `master` baseline and were not introduced by this consolidation.
 
+### Automation
+
+- Added `docs/linear-dts-1624-rca-and-agent-prompt.md` with:
+  - root cause analysis for Linear issue `DTS-1624` status transition to `Duplicate`/`Canceled`,
+  - an operator prompt template for Cursor-based investigation and remediation,
+  - and recommended Linear/Composio follow-up actions once MCP connectivity is available.
+
 ## [2.0.0] - 2024-12-14 - PRODUCTION READY
 
 ### 🎉 Major Release - Production Ready
