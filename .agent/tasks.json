@@ -20,6 +20,22 @@
       "passes": false,
       "priority": "high",
       "dependencies": []
+    },
+    {
+      "id": "linear-dts-1689-duplicate-debug-prompt",
+      "category": "linear-automation",
+      "description": "Review the DTS-1689 Linear duplicate status change and prepare a debug prompt for external agent follow-up",
+      "steps": [
+        "Inventory available MCP resources and external service access",
+        "Review the Linear trigger payload and determine the likely root cause",
+        "Research current tool documentation before creating the prompt",
+        "Create a planned prompt for Linear/Composio follow-up",
+        "Document blocked external actions and validation status"
+      ],
+      "status": "in_progress",
+      "passes": false,
+      "priority": "high",
+      "dependencies": []
     }
   ]
 }
