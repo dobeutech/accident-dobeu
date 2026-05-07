@@ -60,6 +60,10 @@
 - No application code changes were required from the available evidence.
 - External issue update and Composio agent launch are blocked in this environment because the requested MCP tools are not exposed.
 - Local repository changes are limited to checkpoint and prompt documentation.
+- Validation after the checkpoint commit:
+  - `cd backend && npm ci`: pass, with npm audit/deprecation warnings.
+  - `cd backend && npm run lint`: fail with existing repository lint violations across backend source/test files.
+  - `cd backend && npm test -- --runInBand`: fail in existing telematics and image validation service tests.
 
 ## Next Steps
 

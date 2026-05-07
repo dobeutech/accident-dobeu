@@ -32,7 +32,7 @@
         "Create a planned prompt for Linear/Composio follow-up",
         "Document blocked external actions and validation status"
       ],
-      "status": "in_progress",
+      "status": "completed",
       "passes": false,
       "priority": "high",
       "dependencies": []
