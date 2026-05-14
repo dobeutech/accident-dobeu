@@ -20,6 +20,22 @@
       "passes": false,
       "priority": "high",
       "dependencies": []
+    },
+    {
+      "id": "DTS-1695-linear-duplicate-billing-alert-triage",
+      "category": "linear-automation",
+      "description": "Triage duplicate Linear issue DTS-1695 for MongoDB Atlas billing alert and prepare a resolver prompt for the canonical issue",
+      "steps": [
+        "Review the Linear status-change trigger payload",
+        "Check available MCP resources and repository integration context",
+        "Research current MongoDB Atlas billing alert documentation",
+        "Document root-cause assessment and resolver prompt template",
+        "Verify, commit, and push the branch"
+      ],
+      "status": "completed",
+      "passes": true,
+      "priority": "high",
+      "dependencies": []
     }
   ]
 }
